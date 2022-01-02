@@ -115,7 +115,9 @@ public class movementTemp extends LinearOpMode {
         // This should be the only part that is modified once it is correct.
 
         strafeBuddy(-80,MAX_SPEED,MIN_SPEED,ACCEL);
-        //spinspinducky;
+        spinspinducky.setPower(-1);
+        sleep(10000);
+        spinspinducky.setPower(0);
         goStraight(-14,MAX_SPEED,MIN_SPEED,ACCEL);
         strafeBuddy(-2,MAX_SPEED,MIN_SPEED,ACCEL);
 
