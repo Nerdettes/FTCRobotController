@@ -3,15 +3,17 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvWebcam;
+import org.openftc.easyopencv.OpenCvInternalCamera;
 
 @TeleOp(name = "findpink", group = "Iterative Opmode")
 public class findpink extends LinearOpMode {
     Pipeline modifyPipeline = new Pipeline();
-    private OpenCvWebcam webCam;
+    //private OpenCvWebcam webCam;
+    private  OpenCvCamera webCam;
+    private static String newMessage;
+
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -19,12 +21,15 @@ public class findpink extends LinearOpMode {
                 "cameraMonitorViewId",
                 "id",
                 hardwareMap.appContext.getPackageName());
-        webCam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId2);
+        //webCam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId2);
+        webCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId2);
         webCam.setPipeline(modifyPipeline);
         webCam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
                 webCam.startStreaming(320, 240);
+                telemetry.addData("Pipeline: ", "Initialized");
+                telemetry.update();
             }
 
             @Override
@@ -33,9 +38,26 @@ public class findpink extends LinearOpMode {
                 telemetry.update();
             }
         });
-    waitForStart();
+
+        Long startTime = System.currentTimeMillis();
+        Long currTime = startTime;
+
+        // Troubleshooting only recommend < 5000
+        while (currTime - startTime < 50000) {
+            if (currTime - startTime < 500) {
+                telemetry.addData("Camera: ", "Waiting to make sure valid data is incoming");
+            } else {
+                telemetry.addData("Time Delta: ", (currTime - startTime));
+                telemetry.addData("Pixel Count: ", modifyPipeline.getPixelCount());
+            }
+            telemetry.update();
+            currTime = System.currentTimeMillis();
+        }
+
+        waitForStart();
 
         while (opModeIsActive()) {
+
             if (gamepad2.right_bumper) {
                 modifyPipeline.lowX += 10;
             }

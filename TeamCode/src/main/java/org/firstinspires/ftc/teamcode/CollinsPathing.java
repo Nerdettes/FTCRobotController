@@ -132,6 +132,8 @@ public class CollinsPathing extends LinearOpMode {
         dumper.setPosition(BUCKETIN);
         telemetry.addData("Status", "Initialized");
 
+        moveUtils.initialize(LF, RF, LB, RB, imu, desiredHeading);
+
         // wait for the start button to be pressed.
         waitForStart();
 
@@ -140,13 +142,13 @@ public class CollinsPathing extends LinearOpMode {
 
 
         goStraight(24, MAX_SPEED, MIN_SPEED, ACCEL);
-        turnCW(90);
+        moveUtils.turnCW(90);
         goStraight(24, MAX_SPEED, MIN_SPEED, ACCEL);
-        turnCW(90);
+        moveUtils.turnCW(90);
         goStraight(24, MAX_SPEED, MIN_SPEED, ACCEL);
-        turnCW(90);
+        moveUtils.turnCW(90);
         goStraight(24, MAX_SPEED, MIN_SPEED, ACCEL);
-        turnCW(90);
+        moveUtils.turnCW(90);
 
         // End of the actual path
         // -------------------------

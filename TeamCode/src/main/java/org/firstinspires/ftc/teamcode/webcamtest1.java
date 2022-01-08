@@ -78,8 +78,8 @@ public class webcamtest1 extends LinearOpMode {
 
         // Load the trackable objects from the Assets file, and give them meaningful names
        // VuforiaTrackables targetsFreightFrenzy = this.vuforia.loadTrackablesFromAsset("FreightFrenzy");
-        VuforiaTrackables targetsFreightFrenzy = this.vuforia.loadTrackablesFromAsset("duckduckno");
-        //VuforiaTrackables targetsFreightFrenzy = this.vuforia.loadTrackablesFromFile("C:\\Users\\Debbie\\Downloads\\FtcRobotController-7.0\\FtcRobotController-7.0\\FtcRobotController\\src\\main\\assets\\RubberDuck.xml");
+       // VuforiaTrackables targetsFreightFrenzy = this.vuforia.loadTrackablesFromAsset("duckduckno");
+        VuforiaTrackables targetsFreightFrenzy = this.vuforia.loadTrackablesFromFile("Rubber_Duck.dat");
 
      /*   targetsFreightFrenzy.get(0).setName("Blue Storage");
         targetsFreightFrenzy.get(1).setName("Blue Alliance Wall");
