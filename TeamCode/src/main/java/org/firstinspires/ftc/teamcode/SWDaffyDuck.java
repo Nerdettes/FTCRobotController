@@ -17,9 +17,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.*;
 
-@Autonomous(name="SWDonaldDuck", group="")
+@Autonomous(name="SWDaffyDuck", group="")
 
-public class SWDonaldDuck extends LinearOpMode {
+public class SWDaffyDuck extends LinearOpMode {
     // Declarations
     private float desiredHeading;
 
@@ -117,17 +117,8 @@ public class SWDonaldDuck extends LinearOpMode {
         turnCW(45);
         goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);
         //movethatarm(78 whatever numbers y'all need);
-        turnACW(135);
-        goStraight(50,MAX_SPEED,MIN_SPEED,ACCEL);
-        sleep(1000);
-        turnCW(90);
-        strafeBuddy(-6);
-        goStraight(12,MAX_SPEED,MIN_SPEED,ACCEL);
-        spinThatDucky(false);
-        sleep(1000);
-        spinspinducky.setPower(0);
-        goStraight(-20,MAX_SPEED,MIN_SPEED,ACCEL);
-        strafeBuddy(-2);
+        turnCW(45);
+        goStraight(50,1,MIN_SPEED,ACCEL);
 
         // End Modifications of path
         // -------------------------

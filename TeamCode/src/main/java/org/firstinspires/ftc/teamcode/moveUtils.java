@@ -26,6 +26,12 @@ public class moveUtils {
     private static final float TURN_HIGH_ANGLE = 45.0f;
     private static final float TURN_LOW_ANGLE = 5.0f;
 
+    static final float EncoderTicks = 537.6f;
+    static final float WHEEL_DIAMETER_INCHES = 4.0f;
+    static final float REVS_PER_INCH_MOD = 50f/49f;
+    static final double COUNTS_PER_INCH = (EncoderTicks * REVS_PER_INCH_MOD) / (3.1416 * WHEEL_DIAMETER_INCHES);
+    static final double SCALE_ADJUST_FWD = 3.0d;
+
     public static void initialize(DcMotor LF, DcMotor RF, DcMotor LB, DcMotor RB, BNO055IMU imu, float currHeading) {
         moveUtils.LF = LF;
         moveUtils.RF = RF;
@@ -44,7 +50,7 @@ public class moveUtils {
         turnToHeading();
     }
 
-    public void turnACW(float turnDegrees) {
+    public static void turnACW(float turnDegrees) {
         desiredHeading += turnDegrees;
         if (desiredHeading > 180) {
             desiredHeading -= 360;
@@ -92,6 +98,13 @@ public class moveUtils {
         RB.setPower(-turnPower);
     }
 
+    private static void setAllMotorsStraightPower(float turnPower) {
+        LF.setPower(turnPower);
+        LB.setPower(turnPower);
+        RF.setPower(turnPower);
+        RB.setPower(turnPower);
+    }
+
     private static float deltaHeading() {
         float dH = getHeading() - desiredHeading;
         if (dH < -180) { dH += 360; }
@@ -131,5 +144,86 @@ public class moveUtils {
         RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    public static void goStraight(float totalDistIn, float maxPower, float minPower, int accel) {
+        int distance;
+        int rampUpDist;
+        int rampDownDist;
+        float currentPower;
+        int currentDistLB = 0;
+        int currentDistRB = 0;
+        int encoderDiff;  // difference in LB and RB wheel encoder count
+        double powerL;  // modified Left-side motor power to equalize motors
+        double powerR;  // modified Right-side motor power to equalize motors
+        boolean isForward = false;
+
+        // Use this to determine to go backward or forward
+        // + totalDistIn means go forward 'totalDistIn' inches
+        // - totalDistIn means go backward 'totalDistIn' inches
+
+        if (totalDistIn > 0) {
+            isForward = true;
+        }
+
+
+        // Convert inches to encoder ticks
+        distance = (int) (Math.abs(totalDistIn) * COUNTS_PER_INCH);  // distance is encoder ticks, not inches
+        rampUpDist = (int) ((maxPower - minPower) * 100 * accel);  // calculates number of encoder ticks (distance) to get to full speed
+        rampDownDist = distance - rampUpDist;  // calculates when (in encoder ticks) to start slowing down
+
+        // Need our ramp-up distance to be less than half or else would not have time to decelerate
+        if (rampUpDist > distance / 2) {
+            rampUpDist = distance / 2;
+            rampDownDist = distance / 2;
+        }
+
+        // Prepare motor encoders, turns off since not running to set position
+        // Calculating power instead
+        resetEncoders();
+
+        // Setting power to motors
+        currentPower = minPower;
+        if (isForward) {
+            setAllMotorsStraightPower(currentPower);
+        } else {
+            setAllMotorsStraightPower(-currentPower);
+        }
+        // MKing - go forward or backward AND use encoder comparison code for error correction!
+        while (currentDistLB < distance) {  // While distance not met
+            if (currentDistLB < rampUpDist) {  // Accelerating
+                currentPower = minPower + (currentDistLB / accel) / 100.0f;
+                maxPower = currentPower;
+            } else if (currentDistRB >= rampDownDist) {  // Decelerating
+                currentPower = maxPower - ((currentDistLB - rampDownDist) / accel) / 100.0f;
+            }
+
+            currentDistLB = Math.abs(LB.getCurrentPosition());
+            currentDistRB = Math.abs(RB.getCurrentPosition());
+
+            // MKing - code for encoder comparison error correcting to run straight!
+            if (currentDistLB < currentDistRB) {  // Left side is lagging right side
+                encoderDiff = currentDistRB - currentDistLB;
+                powerL = currentPower;
+                powerR = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST_FWD)) / 100.0);
+            } else {  // Right side is lagging left side
+                encoderDiff = currentDistLB - currentDistRB;
+                powerR = currentPower;
+                powerL = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST_FWD)) / 100.0);
+            }
+
+            if (isForward) {
+                LF.setPower(powerL);
+                RF.setPower(powerR);
+                LB.setPower(powerL);
+                RB.setPower(powerR);
+            } else {
+                LF.setPower(-powerL);
+                RF.setPower(-powerR);
+                LB.setPower(-powerL);
+                RB.setPower(-powerR);
+            }
+        }
+        resetEncoders();
     }
 }
