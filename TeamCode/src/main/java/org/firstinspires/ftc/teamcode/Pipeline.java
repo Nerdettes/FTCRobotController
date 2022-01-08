@@ -10,7 +10,7 @@ import org.openftc.easyopencv.OpenCvPipeline;
 public class Pipeline extends OpenCvPipeline {
     Mat mat = new Mat();
     // Color Evaluation
-    public int lowX = 235;
+    public int lowX = 200;
     public int lowY = 120;
     public int lowZ = 120;
     public int highX = 255;
@@ -33,11 +33,15 @@ public class Pipeline extends OpenCvPipeline {
         int whiteCount = 0;
         int hitCount = 0;
         int middleRow = mat.height()/2;
+        int beginRow = middleRow - 50;
+        int endRow = middleRow + 50;
         for (int i = 0; i < mat.width(); i++) {
-            if (mat.get(middleRow, i)[0] == 255d) {
-                whiteCount =+ i;
-                hitCount += 1;
-            }
+//            for (int j = beginRow; j < endRow; j++) {
+                if (mat.get(middleRow, i)[0] > lowX) {
+                    whiteCount =+ i;
+                    hitCount += 1;
+                }
+//            }
         }
         if (hitCount != 0) {
             setPixelCount(whiteCount/hitCount);

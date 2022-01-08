@@ -37,20 +37,20 @@ public class CollinsPathing extends LinearOpMode {
     private DcMotor RB = null;
     private CRServo spinspinducky = null;
 
-    static final double EncoderTicks = 537.6;
+    static final double EncoderTicks = 537.7;
     static final double WHEEL_DIAMETER_INCHES = 4.0;
-    static final float ENCODER_TICKS_MOD = 34F/25F;
-    static final double COUNTS_PER_INCH = EncoderTicks / (3.1416 * WHEEL_DIAMETER_INCHES * ENCODER_TICKS_MOD);    // MKING - corrected formula on 11/27/20
-    static final double MAX_SPEED = 0.8;
-    static final double MIN_SPEED = 0.3;
+    static final float ENCODER_TICKS_MOD = 1f;
+    static final double COUNTS_PER_INCH = (EncoderTicks  * ENCODER_TICKS_MOD) / (3.1416f * WHEEL_DIAMETER_INCHES);    // MKING - corrected formula on 11/27/20
+    static final float MAX_SPEED = 1.0f;
+    static final float MIN_SPEED = 0.4f;
     static final int ACCEL = 75;  // Scaling factor used in accel / decel code.  Was 100!
     static final double SCALE_ADJUST = 3.0;  // also use 4.0, 1.8?  Scaling factor used in encoderDiff calculation
 
     static final float STRAFE_MOD = 18f; // Changes desired distance to encoder ticks.
     static final float TURN_SPEED = 0.4f;  // need to check this in robotTurn() method!! 1 is max.
     static final double TURN_SPEED_LOW = 0.2d;
-    private Servo dumper = null;
-    private DcMotor armboom = null;
+//    private Servo dumper = null;
+//    private DcMotor armboom = null;
     private static final float BUCKETCLEAR = .8f;
     private static final float BUCKETDUMP = 0f;
     private static final float BUCKETIN = 1f;
@@ -79,13 +79,13 @@ public class CollinsPathing extends LinearOpMode {
         LB = hardwareMap.get(DcMotor.class, "LB");
         RB = hardwareMap.get(DcMotor.class, "RB");
         spinspinducky = hardwareMap.get(CRServo.class, "spinspinducky");
-        dumper  = hardwareMap.get(Servo.class, "dumper");
-        armboom = hardwareMap.get(DcMotor.class, "armboom");
+//        dumper  = hardwareMap.get(Servo.class, "dumper");
+//        armboom = hardwareMap.get(DcMotor.class, "armboom");
 
         // It drives me crazy that some of these are Reversed, then we apply negative power.
         // Should be simplified.
 
-        armboom.setDirection(DcMotorSimple.Direction.FORWARD);
+//        armboom.setDirection(DcMotorSimple.Direction.FORWARD);
         LF.setDirection(DcMotor.Direction.REVERSE);  // motor direction set for mecanum wheels with mitre gears
         RF.setDirection(DcMotor.Direction.FORWARD);
         LB.setDirection(DcMotor.Direction.REVERSE);
@@ -96,16 +96,16 @@ public class CollinsPathing extends LinearOpMode {
         LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        armboom.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        armboom.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         // Turn on the encoders that have been wired.
         LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        armboom.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        armboom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        armboom.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//
+//        armboom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -129,7 +129,7 @@ public class CollinsPathing extends LinearOpMode {
 
         desiredHeading = (float) getHeading(AngleUnit.DEGREES);
 
-        dumper.setPosition(BUCKETIN);
+//        dumper.setPosition(BUCKETIN);
         telemetry.addData("Status", "Initialized");
 
         moveUtils.initialize(LF, RF, LB, RB, imu, desiredHeading);
@@ -141,14 +141,15 @@ public class CollinsPathing extends LinearOpMode {
         // Define the path here!!!!
 
 
-        goStraight(24, MAX_SPEED, MIN_SPEED, ACCEL);
-        moveUtils.turnCW(90);
-        goStraight(24, MAX_SPEED, MIN_SPEED, ACCEL);
-        moveUtils.turnCW(90);
-        goStraight(24, MAX_SPEED, MIN_SPEED, ACCEL);
-        moveUtils.turnCW(90);
-        goStraight(24, MAX_SPEED, MIN_SPEED, ACCEL);
-        moveUtils.turnCW(90);
+        moveUtils.goStraight(50, MAX_SPEED, MIN_SPEED, ACCEL);
+        sleep(2000);
+        moveUtils.turnACW(90);
+        moveUtils.goStraight(50, MAX_SPEED, MIN_SPEED, ACCEL);
+        moveUtils.turnACW(90);
+        moveUtils.goStraight(50, MAX_SPEED, MIN_SPEED, ACCEL);
+        moveUtils.turnACW(90);
+        moveUtils.goStraight(50, MAX_SPEED, MIN_SPEED, ACCEL);
+        moveUtils.turnACW(90);
 
         // End of the actual path
         // -------------------------
@@ -182,25 +183,7 @@ public class CollinsPathing extends LinearOpMode {
 
         // Once the strafe is complete, reset the state of the motors.
 
-        LF.setPower(0);
-        RF.setPower(0);
-        RB.setPower(0);
-        LB.setPower(0);
-
-        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        resetEncoders();
 
         turnToHeading(TURN_SPEED);
 
