@@ -17,9 +17,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.*;
 
-@Autonomous(name="Template", group="")
+@Autonomous(name="NEDeweyDuck", group="")
 
-public class movementTemp extends LinearOpMode {
+public class NEDeweyDuck extends LinearOpMode {
     // Declarations
     private float desiredHeading;
 
@@ -114,12 +114,12 @@ public class movementTemp extends LinearOpMode {
         // Path belongs here.
         // This should be the only part that is modified once it is correct.
 
-        goStraight(-12,MAX_SPEED,MIN_SPEED,ACCEL);
-        turnCW(20);
-        spinThatDucky(true);
-        goStraight(3);
-        turnCW(30);
-        goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.goStraight(-4,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.turnCW(90);
+        moveUtils.goStraight(12,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.strafeBuddy(-2);
+        acuatorUtils.spinThatDucky(true);
+        moveUtils.strafeBUddy(12);
 
 
 
