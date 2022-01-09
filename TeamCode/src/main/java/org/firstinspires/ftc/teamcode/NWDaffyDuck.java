@@ -116,6 +116,7 @@ public class NWDaffyDuck extends LinearOpMode {
         moveUtils.goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
         moveUtils.turnACW(45);
         moveUtils.goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);
+        acuatorUtils.moveThatArm(30);
         moveUtils.turnCW(135);
         moveUtils.goStraight(-55,MAX_SPEED,MIN_SPEED,ACCEL);
 
