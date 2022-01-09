@@ -17,9 +17,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.*;
 
-@Autonomous(name="Template", group="")
+@Autonomous(name="SWDeweyDuck", group="")
 
-public class movementTemp extends LinearOpMode {
+public class SWDeweyDuck extends LinearOpMode {
     // Declarations
     private float desiredHeading;
 
@@ -42,7 +42,6 @@ public class movementTemp extends LinearOpMode {
     static final double MIN_SPEED = 0.3;
     static final int ACCEL = 75;  // Scaling factor used in accel / decel code.  Was 100!
     static final double SCALE_ADJUST = 3.0;  // also use 4.0, 1.8?  Scaling factor used in encoderDiff calculation
-    double headingStraight;
     // End straight variables
     // ---------------------
 
@@ -114,12 +113,13 @@ public class movementTemp extends LinearOpMode {
         // Path belongs here.
         // This should be the only part that is modified once it is correct.
 
-        strafeBuddy(-80,MAX_SPEED,MIN_SPEED,ACCEL);
-        spinspinducky.setPower(-1);
-        sleep(10000);
-        spinspinducky.setPower(0);
-        goStraight(-14,MAX_SPEED,MIN_SPEED,ACCEL);
-        strafeBuddy(-2,MAX_SPEED,MIN_SPEED,ACCEL);
+        strafeBuddy(-120);
+        goStraight(8,MAX_SPEED,MIN_SPEED,ACCEL);
+        spinThatDucky(false);
+        sleep(1000);
+
+        goStraight(-24,MAX_SPEED,MIN_SPEED,ACCEL);
+        strafeBuddy(-2);
 
         // End Modifications of path
         // -------------------------
@@ -212,7 +212,6 @@ public class movementTemp extends LinearOpMode {
         telemetry.addData("Final Heading: ", getHeading());
         telemetry.addData("Position ", imu.getPosition());
         telemetry.update();
-        sleep(3000);
     }
 
     private void setAllMotorsPower(float turnPower) {
@@ -264,15 +263,7 @@ public class movementTemp extends LinearOpMode {
 
         // Prepare motor encoders, turns off since not running to set position
         // Calculating power instead
-        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        LB.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        RB.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        resetEncoders();
 
         // Setting power to motors
         currentPower = minPower;
@@ -322,6 +313,7 @@ public class movementTemp extends LinearOpMode {
                 RB.setPower(-powerR);
             }
         }
+        resetEncoders();
 
     }
 
@@ -368,7 +360,7 @@ public class movementTemp extends LinearOpMode {
         LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-
+        resetEncoders();
     }
     private void movethatarm(int getthatdistance)
     {
@@ -377,6 +369,25 @@ public class movementTemp extends LinearOpMode {
         {
             armboom.setPower(1);
         }
+
+    }
+    private void spinThatDucky (boolean isRed)
+    {
+        resetEncoders();
+        LF.setPower(.05);
+        LB.setPower(.05);
+        RF.setPower(.05);
+        RB.setPower(.05);
+        if (isRed) {
+            spinspinducky.setPower(-1);
+        }
+        else {
+            spinspinducky.setPower(1);
+        }
+        sleep(1000);
+        resetEncoders();
+        sleep(4000);
+        spinspinducky.setPower(0);
 
     }
 
