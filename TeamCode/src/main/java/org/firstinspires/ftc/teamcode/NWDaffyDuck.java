@@ -113,11 +113,13 @@ public class NWDaffyDuck extends LinearOpMode {
         // -------------------------
         // Path belongs here.
         // This should be the only part that is modified once it is correct.
-        goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
-        turnACW(40);
-        goStraight(3);
-        turnACW(30);
-        goStraight(30,1,MAX_SPEED,ACCEL);
+        moveUtils.goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.turnACW(45);
+        moveUtils.goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.turnCW(135);
+        moveUtils.goStraight(-55,MAX_SPEED,MIN_SPEED,ACCEL);
+
+
 
 
         // End Modifications of path
