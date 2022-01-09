@@ -114,13 +114,13 @@ public class movementTemp extends LinearOpMode {
         // Path belongs here.
         // This should be the only part that is modified once it is correct.
 
-        goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
-        turnACW(45);
-        goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);
-        //movethatarm(78 whatever numbers y'all need);
-        turnACW(45);
-        strafeBuddy(2,MAX_SPEED,MIN_SPEED,ACCEL);
-        goStraight(-64,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.turnACW(45);
+        moveUtils.goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);
+        acuatorUtils.moveThatArm(30);
+        moveUtils.turnACW(45);
+        moveUtils.strafeBuddy(2,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.goStraight(-64,MAX_SPEED,MIN_SPEED,ACCEL);
 
         // End Modifications of path
         // -------------------------
@@ -265,15 +265,7 @@ public class movementTemp extends LinearOpMode {
 
         // Prepare motor encoders, turns off since not running to set position
         // Calculating power instead
-        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        LB.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        RB.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        resetEncoders();
 
         // Setting power to motors
         currentPower = minPower;
@@ -323,7 +315,8 @@ public class movementTemp extends LinearOpMode {
                 RB.setPower(-powerR);
             }
         }
-
+        resetEncoders();
+        headingStraight = getHeading();
     }
 
     public void strafeBuddy(float distanceMoveInches) {
