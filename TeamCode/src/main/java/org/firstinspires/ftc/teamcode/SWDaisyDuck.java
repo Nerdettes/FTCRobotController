@@ -117,7 +117,7 @@ public class movementTemp extends LinearOpMode {
         moveUtils.goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
         moveUtils.turnCW(45);
         moveUtils.goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);
-        acuatorUtils.movethatarm(30);
+        acuatorUtils.moveThatArm(30);
         moveUtils.goStraight(50,MAX_SPEED,MIN_SPEED,ACCEL);
         moveUtils.turnCW(90);
         moveUtils.strafeBuddy(-6);
