@@ -113,15 +113,16 @@ public class NWDaisyDuck extends LinearOpMode {
         // -------------------------
         // Path belongs here.
         // This should be the only part that is modified once it is correct.
-        goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
-        turnACW(40);
-        goStraight(3);
-        turnCW(130);
-        goStraight(-32);
-       spinThatDucky(true);
-       goStraight(-5,MAX_SPEED,MIN_SPEED,ACCEL);
-        turnACW(90);
-        goStraight(96,1,MAX_SPEED,ACCEL);
+        moveUtils.goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.turnACW(45);
+        moveUtils.goStraight(-10);
+        moveUtils.turnCW(135);
+        moceUtils.goStraight(32);
+        moveUtils.strafeBuddy(-10);
+        acuatorUtils.spinThatDucky(true);
+        sleep(1000);
+        moveUtils.strafeBuddy(7);
+        moveUtils.goStraight(-96,1,MAX_SPEED,ACCEL);
         // End Modifications of path
         // -------------------------
     }
