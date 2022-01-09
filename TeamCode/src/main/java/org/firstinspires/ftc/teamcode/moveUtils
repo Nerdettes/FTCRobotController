@@ -266,22 +266,5 @@ public class moveUtils {
         turnToHeading();
     }
 
-    public static void spinThatDucky (boolean isRed) throws InterruptedException {
-        resetEncoders();
-        LF.setPower(.05);
-        LB.setPower(.05);
-        RF.setPower(.05);
-        RB.setPower(.05);
-        if (isRed) {
-            spinspinducky.setPower(-1);
-        }
-        else {
-            spinspinducky.setPower(1);
-        }
-        sleep(1000);
-        resetEncoders();
-        sleep(4000);
-        spinspinducky.setPower(0);
 
-    }
 }
