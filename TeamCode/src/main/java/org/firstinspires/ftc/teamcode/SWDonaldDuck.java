@@ -17,9 +17,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.*;
 
-@Autonomous(name="SWDonaldDuck", group="")
+@Autonomous(name="Template", group="")
 
-public class SWDonaldDuck extends LinearOpMode {
+public class movementTemp extends LinearOpMode {
     // Declarations
     private float desiredHeading;
 
@@ -42,6 +42,7 @@ public class SWDonaldDuck extends LinearOpMode {
     static final double MIN_SPEED = 0.3;
     static final int ACCEL = 75;  // Scaling factor used in accel / decel code.  Was 100!
     static final double SCALE_ADJUST = 3.0;  // also use 4.0, 1.8?  Scaling factor used in encoderDiff calculation
+    double headingStraight;
     // End straight variables
     // ---------------------
 
@@ -113,21 +114,18 @@ public class SWDonaldDuck extends LinearOpMode {
         // Path belongs here.
         // This should be the only part that is modified once it is correct.
 
-        goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
-        turnCW(45);
-        goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);
-        //movethatarm(78 whatever numbers y'all need);
-        turnACW(135);
-        goStraight(50,MAX_SPEED,MIN_SPEED,ACCEL);
-        sleep(1000);
-        turnCW(90);
-        strafeBuddy(-6);
-        goStraight(12,MAX_SPEED,MIN_SPEED,ACCEL);
-        spinThatDucky(false);
-        sleep(1000);
-        spinspinducky.setPower(0);
-        goStraight(-20,MAX_SPEED,MIN_SPEED,ACCEL);
-        strafeBuddy(-2);
+        moveUtils.goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.turnCW(45);
+        moveUtils.goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);
+        acuatorUtils.moveThatArm(30);
+        moveUtils.turnACW(135);
+        moveUtils.goStraight(50,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.turnCW(90);
+        moveUtils.strafeBuddy(-6);
+        moveUtils.goStraight(12,MAX_SPEED,MIN_SPEED,ACCEL);
+        acuatorUtils.spinThatDucky(false);
+        moveUtils.goStraight(-20,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.strafeBuddy(-2);
 
         // End Modifications of path
         // -------------------------
@@ -220,6 +218,7 @@ public class SWDonaldDuck extends LinearOpMode {
         telemetry.addData("Final Heading: ", getHeading());
         telemetry.addData("Position ", imu.getPosition());
         telemetry.update();
+        sleep(3000);
     }
 
     private void setAllMotorsPower(float turnPower) {
@@ -322,7 +321,7 @@ public class SWDonaldDuck extends LinearOpMode {
             }
         }
         resetEncoders();
-
+        headingStraight = getHeading();
     }
 
     public void strafeBuddy(float distanceMoveInches) {
@@ -368,7 +367,7 @@ public class SWDonaldDuck extends LinearOpMode {
         LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        resetEncoders();
+
     }
     private void movethatarm(int getthatdistance)
     {
@@ -377,25 +376,6 @@ public class SWDonaldDuck extends LinearOpMode {
         {
             armboom.setPower(1);
         }
-
-    }
-    private void spinThatDucky (boolean isRed)
-    {
-        resetEncoders();
-        LF.setPower(.05);
-        LB.setPower(.05);
-        RF.setPower(.05);
-        RB.setPower(.05);
-        if (isRed) {
-            spinspinducky.setPower(-1);
-        }
-        else {
-            spinspinducky.setPower(1);
-        }
-        sleep(1000);
-        resetEncoders();
-        sleep(4000);
-        spinspinducky.setPower(0);
 
     }
 
