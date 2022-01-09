@@ -2,9 +2,13 @@ package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 
+import static java.lang.Thread.sleep;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
@@ -19,7 +23,10 @@ public class moveUtils {
     private static CRServo spinner = null;
     private static BNO055IMU imu;
     private static float desiredHeading;
-
+    private static CRServo spinspinducky = null;
+    private static Servo dumper = null;
+    private static DcMotor armboom = null;
+    
     // Things specific to this class
     private static final float TURN_SPEED_HIGH = 1f;
     private static final float TURN_SPEED_LOW = 0.15f;
@@ -257,5 +264,24 @@ public class moveUtils {
 
         // And make sure we haven't drifted on heading.
         turnToHeading();
+    }
+    
+    private void spinThatDucky (boolean isRed) throws InterruptedException {
+        resetEncoders();
+        LF.setPower(.05);
+        LB.setPower(.05);
+        RF.setPower(.05);
+        RB.setPower(.05);
+        if (isRed) {
+            spinspinducky.setPower(-1);
+        }
+        else {
+            spinspinducky.setPower(1);
+        }
+        sleep(1000);
+        resetEncoders();
+        sleep(4000);
+        spinspinducky.setPower(0);
+
     }
 }
