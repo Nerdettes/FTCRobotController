@@ -114,12 +114,13 @@ public class NELouieDuck extends LinearOpMode {
         // Path belongs here.
         // This should be the only part that is modified once it is correct.
 
-        goStraight(-12,MAX_SPEED,MIN_SPEED,ACCEL);
-        turnCW(20);
-        spinThatDucky(true);
-        goStraight(3);
-        turnCW(70);
-        goStraight(-90,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.goStraight(-4,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.turnCW(90);
+        moveUtils.goStraight(12,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.strafeBuddy(-2);
+        acuatorUtils.spinThatDucky(true);
+        moveUtils.strafeBUddy(3);
+        moveUtils.goStraight(-120,MAX_SPEED,MIN_SPEED,ACCEL);
 
 
 
