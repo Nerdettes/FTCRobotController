@@ -117,6 +117,7 @@ public class NEDaisyDuck extends LinearOpMode {
         moveUtils.goStraight(-4,MAX_SPEED,MIN_SPEED,ACCEL);
         moveUtils.turnCW(90);
         moveUtils.goStraight(12,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.strafeBuddy(-2);
         acuatorUtils.spinThatDucky(true);
         moveUtils.strafeBuddy(4);
         moveUtils.goStraight(-65,MAX_SPEED,MIN_SPEED,ACCEL);
