@@ -113,20 +113,17 @@ public class NEDaisyDuck extends LinearOpMode {
         // -------------------------
         // Path belongs here.
         // This should be the only part that is modified once it is correct.
-        
-        //Back away from wall
-        goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
-        //turn 45
-        turnCW(45);
-        //go towards wobble
-        goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);
-        //move arm
-        //movethatarm(70);
-        turnCW(15);
-        goStraight(32,MAX_SPEED,MIN_SPEED,ACCEL);
-        goStraight(-5,MAX_SPEED,MIN_SPEED,ACCEL);
-        turnCW(30);
-        goStraight(96,MAX_SPEED,MIN_SPEED,ACCEL);
+
+        moveUtils.goStraight(-4,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.turnCW(90);
+        moveUtils.goStraight(12,MAX_SPEED,MIN_SPEED,ACCEL);
+        acuatorUtils.spinThatDucky(true);
+        moveUtils.strafeBuddy(4);
+        moveUtils.goStraight(-65,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.turnCW(45);
+        acuatorUtils.moveThatArm(30);
+        moveUtils.turnACW(45);
+        moveUtils.goStraight(-35,MAX_SPEED,MIN_SPEED,ACCEL);
         // End Modifications of path
         // -------------------------
     }
