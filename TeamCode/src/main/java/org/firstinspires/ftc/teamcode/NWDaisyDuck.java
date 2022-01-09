@@ -116,6 +116,7 @@ public class NWDaisyDuck extends LinearOpMode {
         moveUtils.goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
         moveUtils.turnACW(45);
         moveUtils.goStraight(-10);
+        acuatorUtils.moveThatArm(30);
         moveUtils.turnCW(135);
         moceUtils.goStraight(32);
         moveUtils.strafeBuddy(-10);
