@@ -8,8 +8,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Func;
@@ -21,9 +19,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import java.util.Locale;
 
-@Autonomous(name="PathTemplate", group="")
+@Autonomous(name="SELouieDuck", group="")
 
-public class PathTemplate extends LinearOpMode {
+public class SELouieDuck extends LinearOpMode {
 
 
     public int distance;
@@ -38,6 +36,8 @@ public class PathTemplate extends LinearOpMode {
     private DcMotor LB = null;
     private DcMotor RB = null;
     private CRServo spinspinducky = null;
+    private static DcMotor armboom = null;
+    private static CRServo intake = null;
 
     static final double EncoderTicks = 537.7;
     static final double WHEEL_DIAMETER_INCHES = 4.0;
@@ -85,6 +85,9 @@ public class PathTemplate extends LinearOpMode {
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
 
+        armboom = hardwareMap.get(DcMotor.class, "armboom");
+        //intake = hardwareMap.get(CRServo.class, "intake");
+
         // Set up our telemetry dashboard
         composeTelemetry();  // need to add this method at end of code
 
@@ -94,6 +97,8 @@ public class PathTemplate extends LinearOpMode {
 
         // The following line allows moveUtils to be used in paths.
         moveUtils.initialize(LF, RF, LB, RB, imu, desiredHeading);
+        actuatorUtils.initializeActuator(armboom, spinspinducky, intake);
+        actuatorUtils.initializeActuatorMovement(LF, RF, LB, RB);
         moveUtils.resetEncoders();
 
         // wait for the start button to be pressed.
@@ -103,11 +108,16 @@ public class PathTemplate extends LinearOpMode {
         // Define the path here!!!!
 
 
-        moveUtils.strafeBuddy(-24);
-        acuatorUtils.spinThatDucky(false);
-        moveUtils.goStraight(-12,MAX_SPEED,MIN_SPEED,ACCEL);
-        moveUtils.turnACW(90);
-        moveUtils.goStraight(-120,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.goStraight(-3,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.strafeBuddy(-30);
+        moveUtils.goStraight(1,MAX_SPEED,MIN_SPEED,ACCEL);
+        sleep(1000);
+        actuatorUtils.spinThatDucky(false);
+        sleep(1000);
+        moveUtils.turnCW(95);
+        moveUtils.strafeBuddy(6);
+        moveUtils.goStraight(105,1,MIN_SPEED,ACCEL);
+
 
         // End of the actual path
         // -------------------------
@@ -226,4 +236,3 @@ public class PathTemplate extends LinearOpMode {
         return angles.firstAngle;
     }
 }
-
