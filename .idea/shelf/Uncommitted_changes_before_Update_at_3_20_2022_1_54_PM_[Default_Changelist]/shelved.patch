@@ -1,0 +1,2380 @@
+Index: build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>/**\r\n * Top-level build file for ftc_app project.\r\n *\r\n * It is extraordinarily rare that you will ever need to edit this file.\r\n */\r\n\r\nconfigurations {\r\n    doc { transitive false }\r\n}\r\n\r\nbuildscript {\r\n    repositories {\r\n        mavenCentral()\r\n        google()\r\n        jcenter()\r\n    }\r\n    dependencies {\r\n        classpath 'com.android.tools.build:gradle:7.0.3'\r\n    }\r\n}\r\n\r\n// This is now required because aapt2 has to be downloaded from the\r\n// google() repository beginning with version 3.2 of the Android Gradle Plugin\r\nallprojects {\r\n    repositories {\r\n        mavenCentral()\r\n        google()\r\n        jcenter()\r\n    }\r\n}\r\n\r\nrepositories {\r\n    mavenCentral()\r\n\r\n    flatDir {\r\n        dirs '../libs'\r\n    }\r\n}\r\n\r\ndependencies {\r\n    doc 'org.firstinspires.ftc:Hardware:6.2.0'\r\n    doc 'org.firstinspires.ftc:RobotCore:6.2.0'\r\n    doc 'org.firstinspires.ftc:FtcCommon:6.2.0'\r\n    doc 'org.firstinspires.ftc:OnBotJava:6.2.0'\r\n    doc 'org.firstinspires.ftc:Inspection:6.2.0'\r\n}\r\n\r\ntask extractJavadoc {\r\n    doLast {\r\n        def componentIds = configurations.doc.incoming.resolutionResult.allDependencies.collect { it.selected.id }\r\n\r\n        def result = dependencies.createArtifactResolutionQuery()\r\n                .forComponents(componentIds)\r\n                .withArtifacts(JvmLibrary, SourcesArtifact, JavadocArtifact)\r\n                .execute()\r\n\r\n        for (component in result.resolvedComponents) {\r\n            component.getArtifacts(JavadocArtifact).each { artifact ->\r\n                def version = artifact.identifier.componentIdentifier.version\r\n                def libName = artifact.identifier.componentIdentifier.moduleIdentifier.name\r\n                copy {\r\n                    from zipTree(artifact.file)\r\n                    into \"docs/$version/$libName/\"\r\n                }\r\n            }\r\n        }\r\n    }\r\n}\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/build.gradle b/build.gradle
+--- a/build.gradle	(revision 86eca18af10e07d532b686584c85b48ac573905b)
++++ b/build.gradle	(date 1641950704693)
+@@ -15,7 +15,7 @@
+         jcenter()
+     }
+     dependencies {
+-        classpath 'com.android.tools.build:gradle:7.0.3'
++        classpath 'com.android.tools.build:gradle:7.0.4'
+     }
+ }
+ 
+Index: TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SWDaisyDuck.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.firstinspires.ftc.teamcode;\r\n\r\nimport com.qualcomm.hardware.bosch.BNO055IMU;\r\nimport com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;\r\nimport com.qualcomm.robotcore.eventloop.opmode.Autonomous;\r\nimport com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;\r\nimport com.qualcomm.robotcore.hardware.CRServo;\r\nimport com.qualcomm.robotcore.hardware.DcMotor;\r\nimport com.qualcomm.robotcore.hardware.DcMotorSimple;\r\nimport com.qualcomm.robotcore.hardware.Servo;\r\n\r\nimport org.firstinspires.ftc.robotcore.external.navigation.Acceleration;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.AxesReference;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.Orientation;\r\n\r\nimport static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.*;\r\n\r\n@Autonomous(name=\"SWDaisyDuck\", group=\"\")\r\n\r\npublic class SWDaisyDuck extends LinearOpMode {\r\n    // Declarations\r\n    private float desiredHeading;\r\n\r\n    // ---------------------\r\n    // Turn variables - this took a lot of experimentation.  Don't recommend changing.\r\n    private static final float TURN_SPEED_HIGH = 1f;\r\n    private static final float TURN_SPEED_LOW = 0.15f;\r\n    private static final float TURN_HIGH_ANGLE = 45.0f;\r\n    private static final float TURN_LOW_ANGLE = 5.0f;\r\n    // End turn variables\r\n    // ---------------------\r\n\r\n    // ---------------------\r\n    // Variables for straight method\r\n    static final double EncoderTicks = 537.6;\r\n    static final double WHEEL_DIAMETER_INCHES = 4.0;\r\n    static final float ENCODER_TICKS_MOD = 34F/25F;\r\n    static final double COUNTS_PER_INCH = EncoderTicks / (3.1416 * WHEEL_DIAMETER_INCHES * ENCODER_TICKS_MOD);    // MKING - corrected formula on 11/27/20\r\n    static final double MAX_SPEED = 0.8;\r\n    static final double MIN_SPEED = 0.3;\r\n    static final int ACCEL = 75;  // Scaling factor used in accel / decel code.  Was 100!\r\n    static final double SCALE_ADJUST = 3.0;  // also use 4.0, 1.8?  Scaling factor used in encoderDiff calculation\r\n    // End straight variables\r\n    // ---------------------\r\n\r\n    // ---------------------\r\n    // Imu variables\r\n    BNO055IMU imu;\r\n    Orientation angles;\r\n    Acceleration gravity;\r\n    private float allowableHeadingDeviation = 3.0f;\r\n    // End imu variables\r\n    // ---------------------\r\n\r\n    private DcMotor LF = null;\r\n    private DcMotor RF = null;\r\n    private DcMotor LB = null;\r\n    private DcMotor RB = null;\r\n\r\n    private CRServo spinspinducky = null;\r\n    private Servo dumper = null;\r\n    private DcMotor armboom = null;\r\n\r\n    // ---------------------\r\n    // Bucket variables\r\n    private static final float BUCKETCLEAR = .8f;\r\n    private static final float BUCKETDUMP = 0f;\r\n    private static final float BUCKETIN = 1f;\r\n    // End bucket variables\r\n    // ---------------------\r\n\r\n    static final float STRAFE_MOD = 18f; // Changes desired distance to encoder ticks.\r\n\r\n    @Override\r\n    public void runOpMode() throws InterruptedException {\r\n        // Initializations\r\n\r\n        // IMU initialization\r\n        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();\r\n        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;\r\n        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;\r\n        parameters.calibrationDataFile = \"BNO055IMUCalibration.json\";\r\n        parameters.loggingEnabled = true;\r\n        parameters.loggingTag = \"IMU\";\r\n        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();\r\n        imu = hardwareMap.get(BNO055IMU.class, \"imu\");\r\n        imu.initialize(parameters);\r\n\r\n        // Initialize motors\r\n        LF = hardwareMap.get(DcMotor.class, \"LF\");\r\n        RF = hardwareMap.get(DcMotor.class, \"RF\");\r\n        LB = hardwareMap.get(DcMotor.class, \"LB\");\r\n        RB = hardwareMap.get(DcMotor.class, \"RB\");\r\n\r\n        spinspinducky = hardwareMap.get(CRServo.class, \"spinspinducky\");\r\n        dumper  = hardwareMap.get(Servo.class, \"dumper\");\r\n        armboom = hardwareMap.get(DcMotor.class, \"armboom\");\r\n\r\n        LF.setDirection(DcMotor.Direction.REVERSE);\r\n        RF.setDirection(DcMotor.Direction.FORWARD);\r\n        LB.setDirection(DcMotor.Direction.REVERSE);\r\n        RB.setDirection(DcMotor.Direction.FORWARD);\r\n\r\n        armboom.setDirection(DcMotorSimple.Direction.FORWARD);\r\n\r\n        resetEncoders();\r\n\r\n        waitForStart();\r\n\r\n        // -------------------------\r\n        // Path belongs here.\r\n        // This should be the only part that is modified once it is correct.\r\n\r\n        goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);\r\n        turnCW(45);\r\n        goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);\r\n        //movethatarm(78 whatever numbers y'all need);\r\n        turnACW(135);\r\n        goStraight(50,MAX_SPEED,MIN_SPEED,ACCEL);\r\n        sleep(1000);\r\n        turnCW(90);\r\n        strafeBuddy(-6);\r\n        goStraight(12,MAX_SPEED,MIN_SPEED,ACCEL);\r\n        spinThatDucky(false);\r\n        turnCW(95);\r\n        goStraight(97,1,MIN_SPEED,ACCEL);\r\n\r\n        // End Modifications of path\r\n        // -------------------------\r\n    }\r\n\r\n\r\n    private float getHeading() {\r\n        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC,\r\n                AxesOrder.ZYX,\r\n                DEGREES);\r\n        return angles.firstAngle;\r\n    }\r\n\r\n    public void resetEncoders() {\r\n        LF.setPower(0);\r\n        RF.setPower(0);\r\n        LB.setPower(0);\r\n        RB.setPower(0);\r\n\r\n        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n\r\n        // Just a little time to make sure encoders have reset\r\n        sleep(200);\r\n\r\n        // Only using the LB Encoder\r\n        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n\r\n        // Not technically encoder but...\r\n        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n    }\r\n\r\n    private void turnCW(float turnDegrees) {\r\n        desiredHeading -= turnDegrees;\r\n        if (desiredHeading <= -180) {\r\n            desiredHeading += 360;\r\n        }\r\n        turnToHeading();\r\n    }\r\n\r\n    private void turnACW(float turnDegrees) {\r\n        desiredHeading += turnDegrees;\r\n        if (desiredHeading > 180) {\r\n            desiredHeading -= 360;\r\n        }\r\n        turnToHeading();\r\n    }\r\n\r\n    private void turnToHeading() {\r\n        boolean isCW = deltaHeading() > 0;\r\n\r\n        if (isCW) {\r\n            telemetry.addData(\"Turning \", \"CW\");\r\n            // 1st stage - high power rough heading.\r\n            if (deltaHeading() > TURN_HIGH_ANGLE) {\r\n                setAllMotorsPower(TURN_SPEED_HIGH);\r\n                while (deltaHeading() > TURN_HIGH_ANGLE) {\r\n                }\r\n            }\r\n            // 2nd stage - low power fine heading.\r\n            if (deltaHeading() > TURN_LOW_ANGLE) {\r\n                setAllMotorsPower(TURN_SPEED_LOW);\r\n                while (deltaHeading() > TURN_LOW_ANGLE) {\r\n                }\r\n            }\r\n        } else { // Going ACW\r\n            telemetry.addData(\"Turning \", \"ACW\");\r\n            // 1st stage - high power rough heading.\r\n            if (deltaHeading() < -TURN_HIGH_ANGLE) {\r\n                setAllMotorsPower(-TURN_SPEED_HIGH);\r\n                while (deltaHeading() < -TURN_HIGH_ANGLE) {\r\n                }\r\n            }\r\n            // 2nd stage - low power fine heading.\r\n            if (deltaHeading() < -TURN_LOW_ANGLE) {\r\n                setAllMotorsPower(-TURN_SPEED_LOW);\r\n                while (deltaHeading() < -TURN_LOW_ANGLE) {\r\n                }\r\n            }\r\n        }\r\n        resetEncoders();\r\n        telemetry.addData(\"Final Heading: \", getHeading());\r\n        telemetry.addData(\"Position \", imu.getPosition());\r\n        telemetry.update();\r\n    }\r\n\r\n    private void setAllMotorsPower(float turnPower) {\r\n        LF.setPower(turnPower);\r\n        LB.setPower(turnPower);\r\n        RF.setPower(-turnPower);\r\n        RB.setPower(-turnPower);\r\n    }\r\n\r\n    private float deltaHeading() {\r\n        float dH = getHeading() - desiredHeading;\r\n        if (dH < -180) { dH += 360; }\r\n        if (dH > 180) { dH -= 360; }\r\n        return dH;\r\n    }\r\n    public void goStraight(double totalDistIn, double maxPower, double minPower, int accel) {\r\n        int distance;\r\n        int rampUpDist;\r\n        int rampDownDist;\r\n        double currentPower;\r\n        int currentDistLB = 0;\r\n        int currentDistRB = 0;\r\n        int encoderDiff;  // difference in LB and RB wheel encoder count\r\n        double powerL;  // modified Left-side motor power to equalize motors\r\n        double powerR;  // modified Right-side motor power to equalize motors\r\n        boolean forward = true;\r\n\r\n        // Use this to determine to go backward or forward\r\n        // + totalDistIn means go forward 'totalDistIn' inches\r\n        // - totalDistIn means go backward 'totalDistIn' inches\r\n\r\n        if (totalDistIn > 0) {\r\n            forward = true;\r\n        } else {\r\n            forward = false;\r\n        }\r\n\r\n\r\n        // Convert inches to encoder ticks\r\n        distance = (int) (Math.abs(totalDistIn) * COUNTS_PER_INCH);  // distance is encoder ticks, not inches\r\n        rampUpDist = (int) ((maxPower - minPower) * 100 * accel);  // calculates number of encoder ticks (distance) to get to full speed\r\n        rampDownDist = distance - rampUpDist;  // calculates when (in encoder ticks) to start slowing down\r\n\r\n        // Need our ramp-up distance to be less than half or else would not have time to decelerate\r\n        if (rampUpDist > distance / 2) {\r\n            rampUpDist = distance / 2;\r\n            rampDownDist = distance / 2;\r\n        }\r\n\r\n        // Prepare motor encoders, turns off since not running to set position\r\n        // Calculating power instead\r\n        resetEncoders();\r\n\r\n        // Setting power to motors\r\n        currentPower = minPower;\r\n        if (forward) {\r\n            LF.setPower(currentPower);\r\n            RF.setPower(currentPower);\r\n            LB.setPower(currentPower);\r\n            RB.setPower(currentPower);\r\n        } else {\r\n            LF.setPower(-currentPower);\r\n            RF.setPower(-currentPower);\r\n            LB.setPower(-currentPower);\r\n            RB.setPower(-currentPower);\r\n        }\r\n        // MKing - go forward or backward AND use encoder comparison code for error correction!\r\n        while (currentDistLB < distance) {  // While distance not met\r\n            if (currentDistLB < rampUpDist) {  // Accelerating\r\n                currentPower = minPower + ((double) currentDistLB / (double) accel) / 100.0;\r\n                maxPower = currentPower;\r\n            } else if (currentDistRB >= rampDownDist) {  // Decelerating\r\n                currentPower = maxPower - (((double) currentDistLB - (double) rampDownDist) / (double) accel) / 100.0;\r\n            }\r\n\r\n            currentDistLB = Math.abs(LB.getCurrentPosition());\r\n            currentDistRB = Math.abs(RB.getCurrentPosition());\r\n\r\n            // MKing - code for encoder comparison error correcting to run straight!\r\n            if (currentDistLB < currentDistRB) {  // Left side is lagging right side\r\n                encoderDiff = currentDistRB - currentDistLB;\r\n                powerL = currentPower;\r\n                powerR = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST)) / 100.0);\r\n            } else {  // Right side is lagging left side\r\n                encoderDiff = currentDistLB - currentDistRB;\r\n                powerR = currentPower;\r\n                powerL = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST)) / 100.0);\r\n            }\r\n\r\n            if (forward) {\r\n                LF.setPower(powerL);\r\n                RF.setPower(powerR);\r\n                LB.setPower(powerL);\r\n                RB.setPower(powerR);\r\n            } else {\r\n                LF.setPower(-powerL);\r\n                RF.setPower(-powerR);\r\n                LB.setPower(-powerL);\r\n                RB.setPower(-powerR);\r\n            }\r\n        }\r\n        resetEncoders();\r\n\r\n    }\r\n\r\n    public void strafeBuddy(float distanceMoveInches) {\r\n\r\n        distanceMoveInches*=STRAFE_MOD;\r\n\r\n        if (distanceMoveInches > 0) {\r\n            while (LB.getCurrentPosition() < (distanceMoveInches) && RB.getCurrentPosition() < (distanceMoveInches) && opModeIsActive()) {\r\n                LF.setPower(MAX_SPEED);\r\n                RF.setPower(-MAX_SPEED);\r\n                RB.setPower(MAX_SPEED);\r\n                LB.setPower(-MAX_SPEED);\r\n            }\r\n        } else {\r\n            distanceMoveInches = 0-distanceMoveInches;\r\n            while (LB.getCurrentPosition() < (distanceMoveInches) && RB.getCurrentPosition() < (distanceMoveInches) && opModeIsActive()) {\r\n                LF.setPower(-MAX_SPEED);\r\n                RF.setPower(MAX_SPEED);\r\n                RB.setPower(-MAX_SPEED);\r\n                LB.setPower(MAX_SPEED);\r\n            }\r\n        }\r\n\r\n        // Once the strafe is complete, reset the state of the motors.\r\n\r\n        LF.setPower(0);\r\n        RF.setPower(0);\r\n        RB.setPower(0);\r\n        LB.setPower(0);\r\n\r\n        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n\r\n        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n\r\n        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n\r\n        resetEncoders();\r\n    }\r\n    private void movethatarm(int getthatdistance)\r\n    {\r\n\r\n        while (armboom.getCurrentPosition() <  getthatdistance)\r\n        {\r\n            armboom.setPower(1);\r\n        }\r\n\r\n    }\r\n    private void spinThatDucky (boolean isRed)\r\n    {\r\n        resetEncoders();\r\n        LF.setPower(.05);\r\n        LB.setPower(.05);\r\n        RF.setPower(.05);\r\n        RB.setPower(.05);\r\n        if (isRed) {\r\n            spinspinducky.setPower(-1);\r\n        }\r\n        else {\r\n            spinspinducky.setPower(1);\r\n        }\r\n        sleep(1000);\r\n        resetEncoders();\r\n        sleep(4000);\r\n        spinspinducky.setPower(0);\r\n\r\n    }\r\n\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SWDaisyDuck.java b/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SWDaisyDuck.java
+--- a/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SWDaisyDuck.java	(revision 86eca18af10e07d532b686584c85b48ac573905b)
++++ b/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SWDaisyDuck.java	(date 1645291682720)
+@@ -1,401 +1,299 @@
+ package org.firstinspires.ftc.teamcode;
+ 
++import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
++
+ import com.qualcomm.hardware.bosch.BNO055IMU;
+ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+ import com.qualcomm.robotcore.hardware.CRServo;
+ import com.qualcomm.robotcore.hardware.DcMotor;
+-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+ import com.qualcomm.robotcore.hardware.Servo;
+ 
++import org.firstinspires.ftc.robotcore.external.Func;
++import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+ import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
++import org.openftc.easyopencv.OpenCvCamera;
++import org.openftc.easyopencv.OpenCvCameraFactory;
+ 
+-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.*;
++import java.util.Locale;
+ 
+-@Autonomous(name="SWDaisyDuck", group="")
+-
++@Autonomous(name = "SWDaisyDuck", group = "")
+ public class SWDaisyDuck extends LinearOpMode {
+-    // Declarations
+-    private float desiredHeading;
+-
+-    // ---------------------
+-    // Turn variables - this took a lot of experimentation.  Don't recommend changing.
+-    private static final float TURN_SPEED_HIGH = 1f;
+-    private static final float TURN_SPEED_LOW = 0.15f;
+-    private static final float TURN_HIGH_ANGLE = 45.0f;
+-    private static final float TURN_LOW_ANGLE = 5.0f;
+-    // End turn variables
+-    // ---------------------
+-
+-    // ---------------------
+-    // Variables for straight method
+-    static final double EncoderTicks = 537.6;
+-    static final double WHEEL_DIAMETER_INCHES = 4.0;
+-    static final float ENCODER_TICKS_MOD = 34F/25F;
+-    static final double COUNTS_PER_INCH = EncoderTicks / (3.1416 * WHEEL_DIAMETER_INCHES * ENCODER_TICKS_MOD);    // MKING - corrected formula on 11/27/20
+-    static final double MAX_SPEED = 0.8;
+-    static final double MIN_SPEED = 0.3;
+-    static final int ACCEL = 75;  // Scaling factor used in accel / decel code.  Was 100!
+-    static final double SCALE_ADJUST = 3.0;  // also use 4.0, 1.8?  Scaling factor used in encoderDiff calculation
+-    // End straight variables
+-    // ---------------------
+-
+-    // ---------------------
+-    // Imu variables
+-    BNO055IMU imu;
+-    Orientation angles;
+-    Acceleration gravity;
+-    private float allowableHeadingDeviation = 3.0f;
+-    // End imu variables
+-    // ---------------------
++    Pipeline modifyPipeline = new Pipeline();
++    // For a webcam (uncomment below)
++    //private OpenCvWebcam webCam;
++    // For a phone camera (uncomment below)
++    private  OpenCvCamera webCam;
++    private boolean isCameraStreaming = false;
++    private int resultROI;
+ 
+     private DcMotor LF = null;
+     private DcMotor RF = null;
+     private DcMotor LB = null;
+     private DcMotor RB = null;
+-
+     private CRServo spinspinducky = null;
+-    private Servo dumper = null;
++    private CRServo intake = null;
+     private DcMotor armboom = null;
++    private Servo platform = null;
+ 
+-    // ---------------------
+-    // Bucket variables
+-    private static final float BUCKETCLEAR = .8f;
+-    private static final float BUCKETDUMP = 0f;
+-    private static final float BUCKETIN = 1f;
+-    // End bucket variables
+-    // ---------------------
++    static final float MAX_SPEED = 1.0f;
++    static final float MIN_SPEED = 0.4f;
++    static final int ACCEL = 75;  // Scaling factor used in accel / decel code.  Was 100!
++    public float desiredHeading;
+ 
+-    static final float STRAFE_MOD = 18f; // Changes desired distance to encoder ticks.
++    private static final int ARM_REST = 50;
++    private static final int ARM_HIGH = 775;
++    private static final int ARM_MED = 950;
++    private static final int ARM_LOW = 1050;
++
++    BNO055IMU imu;
++    Orientation angles;
++    Acceleration gravity;
+ 
+     @Override
+     public void runOpMode() throws InterruptedException {
+-        // Initializations
++        int cameraMonitorViewId2 = hardwareMap.appContext.getResources().getIdentifier(
++                "cameraMonitorViewId",
++                "id",
++                hardwareMap.appContext.getPackageName());
++        // For a webcam (uncomment below)
++        webCam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId2);
++
++        // For a phone camera (uncomment below)
++        // webCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId2);
++        webCam.setPipeline(modifyPipeline);
++        webCam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
++            @Override
++            public void onOpened() {
++                webCam.startStreaming(320, 240);
++                telemetry.addData("Pipeline: ", "Initialized");
++                telemetry.update();
++                isCameraStreaming = true;
++            }
++
++            @Override
++            public void onError(int errorCode) {
++                telemetry.addData("Error: ", "Something went wrong :(");
++                telemetry.update();
++            }
++        });
++
++        LF = hardwareMap.get(DcMotor.class, "LF");
++        RF = hardwareMap.get(DcMotor.class, "RF");
++        LB = hardwareMap.get(DcMotor.class, "LB");
++        RB = hardwareMap.get(DcMotor.class, "RB");
++        armboom = hardwareMap.get(DcMotor.class, "armboom");
++        intake = hardwareMap.get(CRServo.class, "intake");
++        spinspinducky = hardwareMap.get(CRServo.class, "spinspinducky");
++        platform = hardwareMap.get(Servo.class, "platform");
++
++        LF.setDirection(DcMotor.Direction.REVERSE);  // motor direction set for mecanum wheels with mitre gears
++        RF.setDirection(DcMotor.Direction.FORWARD);
++        LB.setDirection(DcMotor.Direction.REVERSE);
++        RB.setDirection(DcMotor.Direction.FORWARD);
+ 
+         // IMU initialization
+         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+-        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
++        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+         parameters.loggingEnabled = true;
+         parameters.loggingTag = "IMU";
+         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
++
+         imu = hardwareMap.get(BNO055IMU.class, "imu");
+         imu.initialize(parameters);
+ 
+-        // Initialize motors
+-        LF = hardwareMap.get(DcMotor.class, "LF");
+-        RF = hardwareMap.get(DcMotor.class, "RF");
+-        LB = hardwareMap.get(DcMotor.class, "LB");
+-        RB = hardwareMap.get(DcMotor.class, "RB");
++        // Set up our telemetry dashboard
++        composeTelemetry();  // need to add this method at end of code
+ 
+-        spinspinducky = hardwareMap.get(CRServo.class, "spinspinducky");
+-        dumper  = hardwareMap.get(Servo.class, "dumper");
+-        armboom = hardwareMap.get(DcMotor.class, "armboom");
++        desiredHeading = getHeading();
+ 
+-        LF.setDirection(DcMotor.Direction.REVERSE);
+-        RF.setDirection(DcMotor.Direction.FORWARD);
+-        LB.setDirection(DcMotor.Direction.REVERSE);
+-        RB.setDirection(DcMotor.Direction.FORWARD);
++        moveUtils.initialize(LF, RF, LB, RB, imu, desiredHeading);
++        actuatorUtils.initializeActuator(armboom, spinspinducky, intake);
++        actuatorUtils.initializeActuatorMovement(LF, RF, LB, RB);
++        moveUtils.resetEncoders();
+ 
+-        armboom.setDirection(DcMotorSimple.Direction.FORWARD);
++        Long startTime = System.currentTimeMillis();
++        Long currTime = startTime;
+ 
+-        resetEncoders();
+-
++        // Troubleshooting only recommend < 5000
++    /*    while (currTime - startTime < 20000) {
++            if (currTime - startTime < 500) {
++                telemetry.addData("Camera: ", "Waiting to make sure valid data is incoming");
++            } else {
++                telemetry.addData("Time Delta: ", (currTime - startTime));
++                resultROI = modifyPipeline.getResultROI();
++                switch (resultROI) {
++                    case 0:
++                        telemetry.addData("Resulting ROI: ", "Middle");
++                        break;
++                    case 1:
++                        telemetry.addData("Resulting ROI: ", "Right");
++                        break;
++                    case 2:
++                        telemetry.addData("Resulting ROI: ", "Left");
++                        break;
++                    default:
++                        telemetry.addData("Resulting ROI: ", "Something went wrong.");
++                        break;
++                }
++                telemetry.update();
++            }
++            currTime = System.currentTimeMillis();
++        }*/
++        platform.setPosition(90);
+         waitForStart();
++        while (currTime - startTime < 2000) {
++            telemetry.addData("Time Delta: ", (currTime - startTime));
++            resultROI = modifyPipeline.getResultROI();
++            switch (resultROI) {
++                case 0:
++                    telemetry.addData("Resulting ROI: ", "Middle");
++                    break;
++                case 1:
++                    telemetry.addData("Resulting ROI: ", "Right");
++                    break;
++                case 2:
++                    telemetry.addData("Resulting ROI: ", "Left");
++                    break;
++                default:
++                    telemetry.addData("Resulting ROI: ", "Something went wrong.");
++                    break;
++            }
++            telemetry.update();
++            currTime = System.currentTimeMillis();
++        }
++        // Have started.
++        // First thing, stop camera.
++        if (isCameraStreaming) {
++            webCam.stopStreaming();
++            webCam.closeCameraDevice();
++            isCameraStreaming = false;
++        }
+ 
+-        // -------------------------
+-        // Path belongs here.
+-        // This should be the only part that is modified once it is correct.
++        platform.setPosition(0);
+ 
+-        goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
+-        turnCW(45);
+-        goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);
+-        //movethatarm(78 whatever numbers y'all need);
+-        turnACW(135);
+-        goStraight(50,MAX_SPEED,MIN_SPEED,ACCEL);
++        moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
++        moveUtils.turnCW(30);
++
++        switch (resultROI) {
++            case 0:
++                // Middle (Middle Level)
++                moveUtils.goStraight(-12f, MAX_SPEED, MIN_SPEED, ACCEL);
++                actuatorUtils.moveThatArm(ARM_MED);
++                moveUtils.goStraight(-1, MAX_SPEED, MIN_SPEED, ACCEL);
++                actuatorUtils.intakeMove(-1);
++                sleep(3000);
++                actuatorUtils.intakeMove(0);
++                actuatorUtils.moveThatArm(ARM_REST);
++                moveUtils.turnACW(30);
++                moveUtils.strafeBuddy(-147);
++                break;
++            case 1:
++                // Right (Top Level)
++                moveUtils.goStraight(-16, MAX_SPEED, MIN_SPEED, ACCEL);
++                actuatorUtils.moveThatArm(ARM_HIGH);
++                actuatorUtils.intakeMove(-1);
++                sleep(3000);
++                actuatorUtils.intakeMove(0);
++                actuatorUtils.moveThatArm(ARM_REST);
++                moveUtils.turnACW(30);
++                moveUtils.strafeBuddy(-140);
++                break;
++            default:
++                // Left (Bottom Level)
++                moveUtils.goStraight(-8, MAX_SPEED, MIN_SPEED, ACCEL);
++                actuatorUtils.moveThatArm(ARM_LOW);
++                moveUtils.goStraight(-1, MAX_SPEED, MIN_SPEED, ACCEL);
++                actuatorUtils.intakeMove(-1);
++                sleep(3000);
++                actuatorUtils.intakeMove(0);
++                actuatorUtils.moveThatArm(ARM_REST);
++                moveUtils.turnACW(30);
++                moveUtils.strafeBuddy(-145);
++                break;
++        }
++        moveUtils.goStraight(22, MAX_SPEED, MIN_SPEED, ACCEL);
++        actuatorUtils.spinThatDucky(false);
++        moveUtils.goStraight(-2,MAX_SPEED,MIN_SPEED,ACCEL);
++        moveUtils.turnACW(90);
++        moveUtils.goStraight(-4,MAX_SPEED,MIN_SPEED,ACCEL);
++        moveUtils.strafeBuddy(30);
+         sleep(1000);
+-        turnCW(90);
+-        strafeBuddy(-6);
+-        goStraight(12,MAX_SPEED,MIN_SPEED,ACCEL);
+-        spinThatDucky(false);
+-        turnCW(95);
+-        goStraight(97,1,MIN_SPEED,ACCEL);
++        moveUtils.turnToHeading();
++        moveUtils.goStraight(-95,MAX_SPEED,.4f,ACCEL);
++
++    }
++
++    void composeTelemetry() {
+ 
+-        // End Modifications of path
+-        // -------------------------
+-    }
++        // At the beginning of each telemetry update, grab a bunch of data
++        // from the IMU that we will then display in separate lines.
++        telemetry.addAction(new Runnable() {
++            @Override
++            public void run() {
++                // Acquiring the angles is relatively expensive; we don't want
++                // to do that in each of the three items that need that info, as that's
++                // three times the necessary expense.
++                angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
++                gravity = imu.getGravity();
++            }
++        });
+ 
++        telemetry.addLine()
++                .addData("status", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return imu.getSystemStatus().toShortString();
++                    }
++                })
++                .addData("calib", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return imu.getCalibrationStatus().toString();
++                    }
++                });
+ 
+-    private float getHeading() {
++        telemetry.addLine()
++                .addData("heading", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return formatAngle(angles.angleUnit, angles.firstAngle);
++                    }
++                })
++                .addData("roll", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return formatAngle(angles.angleUnit, angles.secondAngle);
++                    }
++                })
++                .addData("pitch", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return formatAngle(angles.angleUnit, angles.thirdAngle);
++                    }
++                });
++
++    }
++
++    String formatAngle(AngleUnit angleUnit, double angle) {
++        return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
++    }
++
++    String formatDegrees(double degrees) {
++        return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
++    }
++
++    public float getHeading() {
+         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC,
+                 AxesOrder.ZYX,
+                 DEGREES);
+         return angles.firstAngle;
+     }
+-
+-    public void resetEncoders() {
+-        LF.setPower(0);
+-        RF.setPower(0);
+-        LB.setPower(0);
+-        RB.setPower(0);
+-
+-        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-
+-        // Just a little time to make sure encoders have reset
+-        sleep(200);
+-
+-        // Only using the LB Encoder
+-        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+-        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+-        LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+-        RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+-
+-        // Not technically encoder but...
+-        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-    }
+-
+-    private void turnCW(float turnDegrees) {
+-        desiredHeading -= turnDegrees;
+-        if (desiredHeading <= -180) {
+-            desiredHeading += 360;
+-        }
+-        turnToHeading();
+-    }
+-
+-    private void turnACW(float turnDegrees) {
+-        desiredHeading += turnDegrees;
+-        if (desiredHeading > 180) {
+-            desiredHeading -= 360;
+-        }
+-        turnToHeading();
+-    }
+-
+-    private void turnToHeading() {
+-        boolean isCW = deltaHeading() > 0;
+-
+-        if (isCW) {
+-            telemetry.addData("Turning ", "CW");
+-            // 1st stage - high power rough heading.
+-            if (deltaHeading() > TURN_HIGH_ANGLE) {
+-                setAllMotorsPower(TURN_SPEED_HIGH);
+-                while (deltaHeading() > TURN_HIGH_ANGLE) {
+-                }
+-            }
+-            // 2nd stage - low power fine heading.
+-            if (deltaHeading() > TURN_LOW_ANGLE) {
+-                setAllMotorsPower(TURN_SPEED_LOW);
+-                while (deltaHeading() > TURN_LOW_ANGLE) {
+-                }
+-            }
+-        } else { // Going ACW
+-            telemetry.addData("Turning ", "ACW");
+-            // 1st stage - high power rough heading.
+-            if (deltaHeading() < -TURN_HIGH_ANGLE) {
+-                setAllMotorsPower(-TURN_SPEED_HIGH);
+-                while (deltaHeading() < -TURN_HIGH_ANGLE) {
+-                }
+-            }
+-            // 2nd stage - low power fine heading.
+-            if (deltaHeading() < -TURN_LOW_ANGLE) {
+-                setAllMotorsPower(-TURN_SPEED_LOW);
+-                while (deltaHeading() < -TURN_LOW_ANGLE) {
+-                }
+-            }
+-        }
+-        resetEncoders();
+-        telemetry.addData("Final Heading: ", getHeading());
+-        telemetry.addData("Position ", imu.getPosition());
+-        telemetry.update();
+-    }
+-
+-    private void setAllMotorsPower(float turnPower) {
+-        LF.setPower(turnPower);
+-        LB.setPower(turnPower);
+-        RF.setPower(-turnPower);
+-        RB.setPower(-turnPower);
+-    }
+-
+-    private float deltaHeading() {
+-        float dH = getHeading() - desiredHeading;
+-        if (dH < -180) { dH += 360; }
+-        if (dH > 180) { dH -= 360; }
+-        return dH;
+-    }
+-    public void goStraight(double totalDistIn, double maxPower, double minPower, int accel) {
+-        int distance;
+-        int rampUpDist;
+-        int rampDownDist;
+-        double currentPower;
+-        int currentDistLB = 0;
+-        int currentDistRB = 0;
+-        int encoderDiff;  // difference in LB and RB wheel encoder count
+-        double powerL;  // modified Left-side motor power to equalize motors
+-        double powerR;  // modified Right-side motor power to equalize motors
+-        boolean forward = true;
+-
+-        // Use this to determine to go backward or forward
+-        // + totalDistIn means go forward 'totalDistIn' inches
+-        // - totalDistIn means go backward 'totalDistIn' inches
+-
+-        if (totalDistIn > 0) {
+-            forward = true;
+-        } else {
+-            forward = false;
+-        }
+-
+-
+-        // Convert inches to encoder ticks
+-        distance = (int) (Math.abs(totalDistIn) * COUNTS_PER_INCH);  // distance is encoder ticks, not inches
+-        rampUpDist = (int) ((maxPower - minPower) * 100 * accel);  // calculates number of encoder ticks (distance) to get to full speed
+-        rampDownDist = distance - rampUpDist;  // calculates when (in encoder ticks) to start slowing down
+-
+-        // Need our ramp-up distance to be less than half or else would not have time to decelerate
+-        if (rampUpDist > distance / 2) {
+-            rampUpDist = distance / 2;
+-            rampDownDist = distance / 2;
+-        }
+-
+-        // Prepare motor encoders, turns off since not running to set position
+-        // Calculating power instead
+-        resetEncoders();
+-
+-        // Setting power to motors
+-        currentPower = minPower;
+-        if (forward) {
+-            LF.setPower(currentPower);
+-            RF.setPower(currentPower);
+-            LB.setPower(currentPower);
+-            RB.setPower(currentPower);
+-        } else {
+-            LF.setPower(-currentPower);
+-            RF.setPower(-currentPower);
+-            LB.setPower(-currentPower);
+-            RB.setPower(-currentPower);
+-        }
+-        // MKing - go forward or backward AND use encoder comparison code for error correction!
+-        while (currentDistLB < distance) {  // While distance not met
+-            if (currentDistLB < rampUpDist) {  // Accelerating
+-                currentPower = minPower + ((double) currentDistLB / (double) accel) / 100.0;
+-                maxPower = currentPower;
+-            } else if (currentDistRB >= rampDownDist) {  // Decelerating
+-                currentPower = maxPower - (((double) currentDistLB - (double) rampDownDist) / (double) accel) / 100.0;
+-            }
+-
+-            currentDistLB = Math.abs(LB.getCurrentPosition());
+-            currentDistRB = Math.abs(RB.getCurrentPosition());
+-
+-            // MKing - code for encoder comparison error correcting to run straight!
+-            if (currentDistLB < currentDistRB) {  // Left side is lagging right side
+-                encoderDiff = currentDistRB - currentDistLB;
+-                powerL = currentPower;
+-                powerR = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST)) / 100.0);
+-            } else {  // Right side is lagging left side
+-                encoderDiff = currentDistLB - currentDistRB;
+-                powerR = currentPower;
+-                powerL = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST)) / 100.0);
+-            }
+-
+-            if (forward) {
+-                LF.setPower(powerL);
+-                RF.setPower(powerR);
+-                LB.setPower(powerL);
+-                RB.setPower(powerR);
+-            } else {
+-                LF.setPower(-powerL);
+-                RF.setPower(-powerR);
+-                LB.setPower(-powerL);
+-                RB.setPower(-powerR);
+-            }
+-        }
+-        resetEncoders();
+-
+-    }
+-
+-    public void strafeBuddy(float distanceMoveInches) {
+-
+-        distanceMoveInches*=STRAFE_MOD;
+-
+-        if (distanceMoveInches > 0) {
+-            while (LB.getCurrentPosition() < (distanceMoveInches) && RB.getCurrentPosition() < (distanceMoveInches) && opModeIsActive()) {
+-                LF.setPower(MAX_SPEED);
+-                RF.setPower(-MAX_SPEED);
+-                RB.setPower(MAX_SPEED);
+-                LB.setPower(-MAX_SPEED);
+-            }
+-        } else {
+-            distanceMoveInches = 0-distanceMoveInches;
+-            while (LB.getCurrentPosition() < (distanceMoveInches) && RB.getCurrentPosition() < (distanceMoveInches) && opModeIsActive()) {
+-                LF.setPower(-MAX_SPEED);
+-                RF.setPower(MAX_SPEED);
+-                RB.setPower(-MAX_SPEED);
+-                LB.setPower(MAX_SPEED);
+-            }
+-        }
+-
+-        // Once the strafe is complete, reset the state of the motors.
+-
+-        LF.setPower(0);
+-        RF.setPower(0);
+-        RB.setPower(0);
+-        LB.setPower(0);
+-
+-        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-
+-        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+-        LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+-        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+-        RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+-
+-        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-
+-        resetEncoders();
+-    }
+-    private void movethatarm(int getthatdistance)
+-    {
+-
+-        while (armboom.getCurrentPosition() <  getthatdistance)
+-        {
+-            armboom.setPower(1);
+-        }
+-
+-    }
+-    private void spinThatDucky (boolean isRed)
+-    {
+-        resetEncoders();
+-        LF.setPower(.05);
+-        LB.setPower(.05);
+-        RF.setPower(.05);
+-        RB.setPower(.05);
+-        if (isRed) {
+-            spinspinducky.setPower(-1);
+-        }
+-        else {
+-            spinspinducky.setPower(1);
+-        }
+-        sleep(1000);
+-        resetEncoders();
+-        sleep(4000);
+-        spinspinducky.setPower(0);
+-
+-    }
+-
+-
+-}
+\ No newline at end of file
++}
+Index: TeamCode/src/main/java/org/firstinspires/ftc/teamcode/moveUtils.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.firstinspires.ftc.teamcode;\r\n\r\nimport static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;\r\n\r\nimport com.qualcomm.hardware.bosch.BNO055IMU;\r\nimport com.qualcomm.robotcore.hardware.CRServo;\r\nimport com.qualcomm.robotcore.hardware.DcMotor;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.AxesReference;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.Orientation;\r\n\r\npublic class moveUtils {\r\n\r\n    // Things that need to be imported\r\n    private static DcMotor LF = null;\r\n    private static DcMotor RF = null;\r\n    private static DcMotor LB = null;\r\n    private static DcMotor RB = null;\r\n    private static CRServo spinner = null;\r\n    private static BNO055IMU imu;\r\n    private static float desiredHeading;\r\n\r\n    // Things specific to this class\r\n    private static final float TURN_SPEED_HIGH = 1f;\r\n    private static final float TURN_SPEED_LOW = 0.15f;\r\n    private static final float TURN_HIGH_ANGLE = 45.0f;\r\n    private static final float TURN_LOW_ANGLE = 5.0f;\r\n\r\n    static final float EncoderTicks = 537.6f;\r\n    static final float WHEEL_DIAMETER_INCHES = 4.0f;\r\n    static final float REVS_PER_INCH_MOD = 50f/49f;\r\n    static final double COUNTS_PER_INCH = (EncoderTicks * REVS_PER_INCH_MOD) / (3.1416 * WHEEL_DIAMETER_INCHES);\r\n    static final double SCALE_ADJUST_FWD = 3.0d;\r\n\r\n    public static void initialize(DcMotor LF, DcMotor RF, DcMotor LB, DcMotor RB, BNO055IMU imu, float currHeading) {\r\n        moveUtils.LF = LF;\r\n        moveUtils.RF = RF;\r\n        moveUtils.LB = LB;\r\n        moveUtils.RB = RB;\r\n        moveUtils.spinner = spinner;\r\n        moveUtils.imu = imu;\r\n        moveUtils.desiredHeading = currHeading;\r\n    }\r\n\r\n    public static void turnCW(float turnDegrees) {\r\n        desiredHeading -= turnDegrees;\r\n        if (desiredHeading < -180) {\r\n            desiredHeading += 360;\r\n        }\r\n        turnToHeading();\r\n    }\r\n\r\n    public static void turnACW(float turnDegrees) {\r\n        desiredHeading += turnDegrees;\r\n        if (desiredHeading > 180) {\r\n            desiredHeading -= 360;\r\n        }\r\n        turnToHeading();\r\n    }\r\n\r\n    private static void turnToHeading() {\r\n        boolean isCW = deltaHeading() > 0;\r\n\r\n        if (isCW) {\r\n            // 1st stage - high power rough heading.\r\n            if (deltaHeading() > TURN_HIGH_ANGLE) {\r\n                setAllMotorsTurnPower(TURN_SPEED_HIGH);\r\n                while (deltaHeading() > TURN_HIGH_ANGLE) {\r\n                }\r\n            }\r\n            // 2nd stage - low power fine heading.\r\n            if (deltaHeading() > TURN_LOW_ANGLE) {\r\n                setAllMotorsTurnPower(TURN_SPEED_LOW);\r\n                while (deltaHeading() > TURN_LOW_ANGLE) {\r\n                }\r\n            }\r\n        } else { // Going ACW\r\n            // 1st stage - high power rough heading.\r\n            if (deltaHeading() < -TURN_HIGH_ANGLE) {\r\n                setAllMotorsTurnPower(-TURN_SPEED_HIGH);\r\n                while (deltaHeading() < -TURN_HIGH_ANGLE) {\r\n                }\r\n            }\r\n            // 2nd stage - low power fine heading.\r\n            if (deltaHeading() < -TURN_LOW_ANGLE) {\r\n                setAllMotorsTurnPower(-TURN_SPEED_LOW);\r\n                while (deltaHeading() < -TURN_LOW_ANGLE) {\r\n                }\r\n            }\r\n        }\r\n        resetEncoders();\r\n    }\r\n\r\n    private static void setAllMotorsTurnPower(float turnPower) {\r\n        LF.setPower(turnPower);\r\n        LB.setPower(turnPower);\r\n        RF.setPower(-turnPower);\r\n        RB.setPower(-turnPower);\r\n    }\r\n\r\n    private static void setAllMotorsStraightPower(float turnPower) {\r\n        LF.setPower(turnPower);\r\n        LB.setPower(turnPower);\r\n        RF.setPower(turnPower);\r\n        RB.setPower(turnPower);\r\n    }\r\n\r\n    private static float deltaHeading() {\r\n        float dH = getHeading() - desiredHeading;\r\n        if (dH < -180) { dH += 360; }\r\n        if (dH > 180) { dH -= 360; }\r\n        return dH;\r\n    }\r\n\r\n    private static float getHeading() {\r\n        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC,\r\n                AxesOrder.ZYX,\r\n                DEGREES);\r\n        return angles.firstAngle;\r\n    }\r\n\r\n    public static void resetEncoders() {\r\n        LF.setPower(0);\r\n        RF.setPower(0);\r\n        LB.setPower(0);\r\n        RB.setPower(0);\r\n\r\n        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n\r\n        // Just a little time to make sure encoders have reset\r\n        //sleep(200);\r\n\r\n        // Not technically encoder but...\r\n        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n\r\n        // Only using the Back motor Encoders\r\n        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n    }\r\n\r\n    public static void goStraight(float totalDistIn, float maxPower, float minPower, int accel) {\r\n        int distance;\r\n        int rampUpDist;\r\n        int rampDownDist;\r\n        float currentPower;\r\n        int currentDistLB = 0;\r\n        int currentDistRB = 0;\r\n        int encoderDiff;  // difference in LB and RB wheel encoder count\r\n        double powerL;  // modified Left-side motor power to equalize motors\r\n        double powerR;  // modified Right-side motor power to equalize motors\r\n        boolean isForward = false;\r\n\r\n        // Use this to determine to go backward or forward\r\n        // + totalDistIn means go forward 'totalDistIn' inches\r\n        // - totalDistIn means go backward 'totalDistIn' inches\r\n\r\n        if (totalDistIn > 0) {\r\n            isForward = true;\r\n        }\r\n\r\n\r\n        // Convert inches to encoder ticks\r\n        distance = (int) (Math.abs(totalDistIn) * COUNTS_PER_INCH);  // distance is encoder ticks, not inches\r\n        rampUpDist = (int) ((maxPower - minPower) * 100 * accel);  // calculates number of encoder ticks (distance) to get to full speed\r\n        rampDownDist = distance - rampUpDist;  // calculates when (in encoder ticks) to start slowing down\r\n\r\n        // Need our ramp-up distance to be less than half or else would not have time to decelerate\r\n        if (rampUpDist > distance / 2) {\r\n            rampUpDist = distance / 2;\r\n            rampDownDist = distance / 2;\r\n        }\r\n\r\n        // Prepare motor encoders, turns off since not running to set position\r\n        // Calculating power instead\r\n        resetEncoders();\r\n\r\n        // Setting power to motors\r\n        currentPower = minPower;\r\n        if (isForward) {\r\n            setAllMotorsStraightPower(currentPower);\r\n        } else {\r\n            setAllMotorsStraightPower(-currentPower);\r\n        }\r\n        // MKing - go forward or backward AND use encoder comparison code for error correction!\r\n        while (currentDistLB < distance) {  // While distance not met\r\n            if (currentDistLB < rampUpDist) {  // Accelerating\r\n                currentPower = minPower + (currentDistLB / accel) / 100.0f;\r\n                maxPower = currentPower;\r\n            } else if (currentDistRB >= rampDownDist) {  // Decelerating\r\n                currentPower = maxPower - ((currentDistLB - rampDownDist) / accel) / 100.0f;\r\n            }\r\n\r\n            currentDistLB = Math.abs(LB.getCurrentPosition());\r\n            currentDistRB = Math.abs(RB.getCurrentPosition());\r\n\r\n            // MKing - code for encoder comparison error correcting to run straight!\r\n            if (currentDistLB < currentDistRB) {  // Left side is lagging right side\r\n                encoderDiff = currentDistRB - currentDistLB;\r\n                powerL = currentPower;\r\n                powerR = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST_FWD)) / 100.0);\r\n            } else {  // Right side is lagging left side\r\n                encoderDiff = currentDistLB - currentDistRB;\r\n                powerR = currentPower;\r\n                powerL = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST_FWD)) / 100.0);\r\n            }\r\n\r\n            if (isForward) {\r\n                LF.setPower(powerL);\r\n                RF.setPower(powerR);\r\n                LB.setPower(powerL);\r\n                RB.setPower(powerR);\r\n            } else {\r\n                LF.setPower(-powerL);\r\n                RF.setPower(-powerR);\r\n                LB.setPower(-powerL);\r\n                RB.setPower(-powerR);\r\n            }\r\n        }\r\n        resetEncoders();\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/moveUtils.java b/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/moveUtils.java
+--- a/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/moveUtils.java	(revision 86eca18af10e07d532b686584c85b48ac573905b)
++++ b/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/moveUtils.java	(date 1643575949530)
+@@ -2,9 +2,13 @@
+ 
+ import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
+ 
++import static java.lang.Thread.sleep;
++
+ import com.qualcomm.hardware.bosch.BNO055IMU;
+ import com.qualcomm.robotcore.hardware.CRServo;
+ import com.qualcomm.robotcore.hardware.DcMotor;
++import com.qualcomm.robotcore.hardware.Servo;
++
+ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+@@ -19,6 +23,9 @@
+     private static CRServo spinner = null;
+     private static BNO055IMU imu;
+     private static float desiredHeading;
++    private static CRServo spinspinducky = null;
++    private static Servo dumper = null;
++    private static DcMotor armboom = null;
+ 
+     // Things specific to this class
+     private static final float TURN_SPEED_HIGH = 1f;
+@@ -29,8 +36,11 @@
+     static final float EncoderTicks = 537.6f;
+     static final float WHEEL_DIAMETER_INCHES = 4.0f;
+     static final float REVS_PER_INCH_MOD = 50f/49f;
+-    static final double COUNTS_PER_INCH = (EncoderTicks * REVS_PER_INCH_MOD) / (3.1416 * WHEEL_DIAMETER_INCHES);
+-    static final double SCALE_ADJUST_FWD = 3.0d;
++    static final float COUNTS_PER_INCH = (EncoderTicks * REVS_PER_INCH_MOD) / (3.1416f * WHEEL_DIAMETER_INCHES);
++    static final float SCALE_ADJUST_FWD = 3.0f;
++
++    static final float STRAFE_MOD = 18f;
++    static final float MAX_STRAFE_SPEED = 1.0f;
+ 
+     public static void initialize(DcMotor LF, DcMotor RF, DcMotor LB, DcMotor RB, BNO055IMU imu, float currHeading) {
+         moveUtils.LF = LF;
+@@ -58,7 +68,7 @@
+         turnToHeading();
+     }
+ 
+-    private static void turnToHeading() {
++    public static void turnToHeading() {
+         boolean isCW = deltaHeading() > 0;
+ 
+         if (isCW) {
+@@ -112,7 +122,7 @@
+         return dH;
+     }
+ 
+-    private static float getHeading() {
++    public static float getHeading() {
+         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC,
+                 AxesOrder.ZYX,
+                 DEGREES);
+@@ -226,4 +236,35 @@
+         }
+         resetEncoders();
+     }
++
++    public static void strafeBuddy(float distanceMoveInches) {
++
++        distanceMoveInches*=STRAFE_MOD;
++
++        if (distanceMoveInches > 0) {
++            while ((LB.getCurrentPosition() < (distanceMoveInches)) && RB.getCurrentPosition() < (distanceMoveInches)) {
++                LF.setPower(MAX_STRAFE_SPEED);
++                RF.setPower(-MAX_STRAFE_SPEED);
++                RB.setPower(MAX_STRAFE_SPEED);
++                LB.setPower(-MAX_STRAFE_SPEED);
++            }
++        } else {
++            distanceMoveInches = 0-distanceMoveInches;
++            while (LB.getCurrentPosition() < (distanceMoveInches) && RB.getCurrentPosition() < (distanceMoveInches)) {
++                LF.setPower(-MAX_STRAFE_SPEED);
++                RF.setPower(MAX_STRAFE_SPEED);
++                RB.setPower(-MAX_STRAFE_SPEED);
++                LB.setPower(MAX_STRAFE_SPEED);
++            }
++        }
++
++        // Once the strafe is complete, reset the state of the motors.
++
++        resetEncoders();
++
++        // And make sure we haven't drifted on heading.
++        turnToHeading();
++    }
++
++
+ }
+Index: TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SWDaffyDuck.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.firstinspires.ftc.teamcode;\r\n\r\nimport com.qualcomm.hardware.bosch.BNO055IMU;\r\nimport com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;\r\nimport com.qualcomm.robotcore.eventloop.opmode.Autonomous;\r\nimport com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;\r\nimport com.qualcomm.robotcore.hardware.CRServo;\r\nimport com.qualcomm.robotcore.hardware.DcMotor;\r\nimport com.qualcomm.robotcore.hardware.DcMotorSimple;\r\nimport com.qualcomm.robotcore.hardware.Servo;\r\n\r\nimport org.firstinspires.ftc.robotcore.external.navigation.Acceleration;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.AxesReference;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.Orientation;\r\n\r\nimport static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.*;\r\n\r\n@Autonomous(name=\"SWDaffyDuck\", group=\"\")\r\n\r\npublic class SWDaffyDuck extends LinearOpMode {\r\n    // Declarations\r\n    private float desiredHeading;\r\n\r\n    // ---------------------\r\n    // Turn variables - this took a lot of experimentation.  Don't recommend changing.\r\n    private static final float TURN_SPEED_HIGH = 1f;\r\n    private static final float TURN_SPEED_LOW = 0.15f;\r\n    private static final float TURN_HIGH_ANGLE = 45.0f;\r\n    private static final float TURN_LOW_ANGLE = 5.0f;\r\n    // End turn variables\r\n    // ---------------------\r\n\r\n    // ---------------------\r\n    // Variables for straight method\r\n    static final double EncoderTicks = 537.6;\r\n    static final double WHEEL_DIAMETER_INCHES = 4.0;\r\n    static final float ENCODER_TICKS_MOD = 34F/25F;\r\n    static final double COUNTS_PER_INCH = EncoderTicks / (3.1416 * WHEEL_DIAMETER_INCHES * ENCODER_TICKS_MOD);    // MKING - corrected formula on 11/27/20\r\n    static final double MAX_SPEED = 0.8;\r\n    static final double MIN_SPEED = 0.3;\r\n    static final int ACCEL = 75;  // Scaling factor used in accel / decel code.  Was 100!\r\n    static final double SCALE_ADJUST = 3.0;  // also use 4.0, 1.8?  Scaling factor used in encoderDiff calculation\r\n    // End straight variables\r\n    // ---------------------\r\n\r\n    // ---------------------\r\n    // Imu variables\r\n    BNO055IMU imu;\r\n    Orientation angles;\r\n    Acceleration gravity;\r\n    private float allowableHeadingDeviation = 3.0f;\r\n    // End imu variables\r\n    // ---------------------\r\n\r\n    private DcMotor LF = null;\r\n    private DcMotor RF = null;\r\n    private DcMotor LB = null;\r\n    private DcMotor RB = null;\r\n\r\n    private CRServo spinspinducky = null;\r\n    private Servo dumper = null;\r\n    private DcMotor armboom = null;\r\n\r\n    // ---------------------\r\n    // Bucket variables\r\n    private static final float BUCKETCLEAR = .8f;\r\n    private static final float BUCKETDUMP = 0f;\r\n    private static final float BUCKETIN = 1f;\r\n    // End bucket variables\r\n    // ---------------------\r\n\r\n    static final float STRAFE_MOD = 18f; // Changes desired distance to encoder ticks.\r\n\r\n    @Override\r\n    public void runOpMode() throws InterruptedException {\r\n        // Initializations\r\n\r\n        // IMU initialization\r\n        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();\r\n        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;\r\n        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;\r\n        parameters.calibrationDataFile = \"BNO055IMUCalibration.json\";\r\n        parameters.loggingEnabled = true;\r\n        parameters.loggingTag = \"IMU\";\r\n        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();\r\n        imu = hardwareMap.get(BNO055IMU.class, \"imu\");\r\n        imu.initialize(parameters);\r\n\r\n        // Initialize motors\r\n        LF = hardwareMap.get(DcMotor.class, \"LF\");\r\n        RF = hardwareMap.get(DcMotor.class, \"RF\");\r\n        LB = hardwareMap.get(DcMotor.class, \"LB\");\r\n        RB = hardwareMap.get(DcMotor.class, \"RB\");\r\n\r\n        spinspinducky = hardwareMap.get(CRServo.class, \"spinspinducky\");\r\n        dumper  = hardwareMap.get(Servo.class, \"dumper\");\r\n        armboom = hardwareMap.get(DcMotor.class, \"armboom\");\r\n\r\n        LF.setDirection(DcMotor.Direction.REVERSE);\r\n        RF.setDirection(DcMotor.Direction.FORWARD);\r\n        LB.setDirection(DcMotor.Direction.REVERSE);\r\n        RB.setDirection(DcMotor.Direction.FORWARD);\r\n\r\n        armboom.setDirection(DcMotorSimple.Direction.FORWARD);\r\n\r\n        resetEncoders();\r\n\r\n        waitForStart();\r\n\r\n        // -------------------------\r\n        // Path belongs here.\r\n        // This should be the only part that is modified once it is correct.\r\n\r\n        goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);\r\n        turnCW(45);\r\n        goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);\r\n        //movethatarm(78 whatever numbers y'all need);\r\n        turnCW(45);\r\n        goStraight(50,1,MIN_SPEED,ACCEL);\r\n\r\n        // End Modifications of path\r\n        // -------------------------\r\n    }\r\n\r\n\r\n    private float getHeading() {\r\n        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC,\r\n                AxesOrder.ZYX,\r\n                DEGREES);\r\n        return angles.firstAngle;\r\n    }\r\n\r\n    public void resetEncoders() {\r\n        LF.setPower(0);\r\n        RF.setPower(0);\r\n        LB.setPower(0);\r\n        RB.setPower(0);\r\n\r\n        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n\r\n        // Just a little time to make sure encoders have reset\r\n        sleep(200);\r\n\r\n        // Only using the LB Encoder\r\n        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n\r\n        // Not technically encoder but...\r\n        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n    }\r\n\r\n    private void turnCW(float turnDegrees) {\r\n        desiredHeading -= turnDegrees;\r\n        if (desiredHeading <= -180) {\r\n            desiredHeading += 360;\r\n        }\r\n        turnToHeading();\r\n    }\r\n\r\n    private void turnACW(float turnDegrees) {\r\n        desiredHeading += turnDegrees;\r\n        if (desiredHeading > 180) {\r\n            desiredHeading -= 360;\r\n        }\r\n        turnToHeading();\r\n    }\r\n\r\n    private void turnToHeading() {\r\n        boolean isCW = deltaHeading() > 0;\r\n\r\n        if (isCW) {\r\n            telemetry.addData(\"Turning \", \"CW\");\r\n            // 1st stage - high power rough heading.\r\n            if (deltaHeading() > TURN_HIGH_ANGLE) {\r\n                setAllMotorsPower(TURN_SPEED_HIGH);\r\n                while (deltaHeading() > TURN_HIGH_ANGLE) {\r\n                }\r\n            }\r\n            // 2nd stage - low power fine heading.\r\n            if (deltaHeading() > TURN_LOW_ANGLE) {\r\n                setAllMotorsPower(TURN_SPEED_LOW);\r\n                while (deltaHeading() > TURN_LOW_ANGLE) {\r\n                }\r\n            }\r\n        } else { // Going ACW\r\n            telemetry.addData(\"Turning \", \"ACW\");\r\n            // 1st stage - high power rough heading.\r\n            if (deltaHeading() < -TURN_HIGH_ANGLE) {\r\n                setAllMotorsPower(-TURN_SPEED_HIGH);\r\n                while (deltaHeading() < -TURN_HIGH_ANGLE) {\r\n                }\r\n            }\r\n            // 2nd stage - low power fine heading.\r\n            if (deltaHeading() < -TURN_LOW_ANGLE) {\r\n                setAllMotorsPower(-TURN_SPEED_LOW);\r\n                while (deltaHeading() < -TURN_LOW_ANGLE) {\r\n                }\r\n            }\r\n        }\r\n        resetEncoders();\r\n        telemetry.addData(\"Final Heading: \", getHeading());\r\n        telemetry.addData(\"Position \", imu.getPosition());\r\n        telemetry.update();\r\n    }\r\n\r\n    private void setAllMotorsPower(float turnPower) {\r\n        LF.setPower(turnPower);\r\n        LB.setPower(turnPower);\r\n        RF.setPower(-turnPower);\r\n        RB.setPower(-turnPower);\r\n    }\r\n\r\n    private float deltaHeading() {\r\n        float dH = getHeading() - desiredHeading;\r\n        if (dH < -180) { dH += 360; }\r\n        if (dH > 180) { dH -= 360; }\r\n        return dH;\r\n    }\r\n    public void goStraight(double totalDistIn, double maxPower, double minPower, int accel) {\r\n        int distance;\r\n        int rampUpDist;\r\n        int rampDownDist;\r\n        double currentPower;\r\n        int currentDistLB = 0;\r\n        int currentDistRB = 0;\r\n        int encoderDiff;  // difference in LB and RB wheel encoder count\r\n        double powerL;  // modified Left-side motor power to equalize motors\r\n        double powerR;  // modified Right-side motor power to equalize motors\r\n        boolean forward = true;\r\n\r\n        // Use this to determine to go backward or forward\r\n        // + totalDistIn means go forward 'totalDistIn' inches\r\n        // - totalDistIn means go backward 'totalDistIn' inches\r\n\r\n        if (totalDistIn > 0) {\r\n            forward = true;\r\n        } else {\r\n            forward = false;\r\n        }\r\n\r\n\r\n        // Convert inches to encoder ticks\r\n        distance = (int) (Math.abs(totalDistIn) * COUNTS_PER_INCH);  // distance is encoder ticks, not inches\r\n        rampUpDist = (int) ((maxPower - minPower) * 100 * accel);  // calculates number of encoder ticks (distance) to get to full speed\r\n        rampDownDist = distance - rampUpDist;  // calculates when (in encoder ticks) to start slowing down\r\n\r\n        // Need our ramp-up distance to be less than half or else would not have time to decelerate\r\n        if (rampUpDist > distance / 2) {\r\n            rampUpDist = distance / 2;\r\n            rampDownDist = distance / 2;\r\n        }\r\n\r\n        // Prepare motor encoders, turns off since not running to set position\r\n        // Calculating power instead\r\n        resetEncoders();\r\n\r\n        // Setting power to motors\r\n        currentPower = minPower;\r\n        if (forward) {\r\n            LF.setPower(currentPower);\r\n            RF.setPower(currentPower);\r\n            LB.setPower(currentPower);\r\n            RB.setPower(currentPower);\r\n        } else {\r\n            LF.setPower(-currentPower);\r\n            RF.setPower(-currentPower);\r\n            LB.setPower(-currentPower);\r\n            RB.setPower(-currentPower);\r\n        }\r\n        // MKing - go forward or backward AND use encoder comparison code for error correction!\r\n        while (currentDistLB < distance) {  // While distance not met\r\n            if (currentDistLB < rampUpDist) {  // Accelerating\r\n                currentPower = minPower + ((double) currentDistLB / (double) accel) / 100.0;\r\n                maxPower = currentPower;\r\n            } else if (currentDistRB >= rampDownDist) {  // Decelerating\r\n                currentPower = maxPower - (((double) currentDistLB - (double) rampDownDist) / (double) accel) / 100.0;\r\n            }\r\n\r\n            currentDistLB = Math.abs(LB.getCurrentPosition());\r\n            currentDistRB = Math.abs(RB.getCurrentPosition());\r\n\r\n            // MKing - code for encoder comparison error correcting to run straight!\r\n            if (currentDistLB < currentDistRB) {  // Left side is lagging right side\r\n                encoderDiff = currentDistRB - currentDistLB;\r\n                powerL = currentPower;\r\n                powerR = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST)) / 100.0);\r\n            } else {  // Right side is lagging left side\r\n                encoderDiff = currentDistLB - currentDistRB;\r\n                powerR = currentPower;\r\n                powerL = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST)) / 100.0);\r\n            }\r\n\r\n            if (forward) {\r\n                LF.setPower(powerL);\r\n                RF.setPower(powerR);\r\n                LB.setPower(powerL);\r\n                RB.setPower(powerR);\r\n            } else {\r\n                LF.setPower(-powerL);\r\n                RF.setPower(-powerR);\r\n                LB.setPower(-powerL);\r\n                RB.setPower(-powerR);\r\n            }\r\n        }\r\n        resetEncoders();\r\n\r\n    }\r\n\r\n    public void strafeBuddy(float distanceMoveInches) {\r\n\r\n        distanceMoveInches*=STRAFE_MOD;\r\n\r\n        if (distanceMoveInches > 0) {\r\n            while (LB.getCurrentPosition() < (distanceMoveInches) && RB.getCurrentPosition() < (distanceMoveInches) && opModeIsActive()) {\r\n                LF.setPower(MAX_SPEED);\r\n                RF.setPower(-MAX_SPEED);\r\n                RB.setPower(MAX_SPEED);\r\n                LB.setPower(-MAX_SPEED);\r\n            }\r\n        } else {\r\n            distanceMoveInches = 0-distanceMoveInches;\r\n            while (LB.getCurrentPosition() < (distanceMoveInches) && RB.getCurrentPosition() < (distanceMoveInches) && opModeIsActive()) {\r\n                LF.setPower(-MAX_SPEED);\r\n                RF.setPower(MAX_SPEED);\r\n                RB.setPower(-MAX_SPEED);\r\n                LB.setPower(MAX_SPEED);\r\n            }\r\n        }\r\n\r\n        // Once the strafe is complete, reset the state of the motors.\r\n\r\n        LF.setPower(0);\r\n        RF.setPower(0);\r\n        RB.setPower(0);\r\n        LB.setPower(0);\r\n\r\n        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n\r\n        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n\r\n        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n\r\n        resetEncoders();\r\n    }\r\n    private void movethatarm(int getthatdistance)\r\n    {\r\n\r\n        while (armboom.getCurrentPosition() <  getthatdistance)\r\n        {\r\n            armboom.setPower(1);\r\n        }\r\n\r\n    }\r\n    private void spinThatDucky (boolean isRed)\r\n    {\r\n        resetEncoders();\r\n        LF.setPower(.05);\r\n        LB.setPower(.05);\r\n        RF.setPower(.05);\r\n        RB.setPower(.05);\r\n        if (isRed) {\r\n            spinspinducky.setPower(-1);\r\n        }\r\n        else {\r\n            spinspinducky.setPower(1);\r\n        }\r\n        sleep(1000);\r\n        resetEncoders();\r\n        sleep(4000);\r\n        spinspinducky.setPower(0);\r\n\r\n    }\r\n\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SWDaffyDuck.java b/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SWDaffyDuck.java
+--- a/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SWDaffyDuck.java	(revision 86eca18af10e07d532b686584c85b48ac573905b)
++++ b/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SWDaffyDuck.java	(date 1646268183400)
+@@ -1,394 +1,296 @@
+ package org.firstinspires.ftc.teamcode;
+ 
++import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
++
+ import com.qualcomm.hardware.bosch.BNO055IMU;
+ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+ import com.qualcomm.robotcore.hardware.CRServo;
+ import com.qualcomm.robotcore.hardware.DcMotor;
+-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+ import com.qualcomm.robotcore.hardware.Servo;
+ 
++import org.checkerframework.checker.units.qual.A;
++import org.firstinspires.ftc.robotcore.external.Func;
++import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+ import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
++import org.openftc.easyopencv.OpenCvCamera;
++import org.openftc.easyopencv.OpenCvCameraFactory;
+ 
+-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.*;
++import java.util.Locale;
+ 
+-@Autonomous(name="SWDaffyDuck", group="")
+-
++@Autonomous(name = "SWDaffyDuck", group = "")
+ public class SWDaffyDuck extends LinearOpMode {
+-    // Declarations
+-    private float desiredHeading;
+-
+-    // ---------------------
+-    // Turn variables - this took a lot of experimentation.  Don't recommend changing.
+-    private static final float TURN_SPEED_HIGH = 1f;
+-    private static final float TURN_SPEED_LOW = 0.15f;
+-    private static final float TURN_HIGH_ANGLE = 45.0f;
+-    private static final float TURN_LOW_ANGLE = 5.0f;
+-    // End turn variables
+-    // ---------------------
+-
+-    // ---------------------
+-    // Variables for straight method
+-    static final double EncoderTicks = 537.6;
+-    static final double WHEEL_DIAMETER_INCHES = 4.0;
+-    static final float ENCODER_TICKS_MOD = 34F/25F;
+-    static final double COUNTS_PER_INCH = EncoderTicks / (3.1416 * WHEEL_DIAMETER_INCHES * ENCODER_TICKS_MOD);    // MKING - corrected formula on 11/27/20
+-    static final double MAX_SPEED = 0.8;
+-    static final double MIN_SPEED = 0.3;
+-    static final int ACCEL = 75;  // Scaling factor used in accel / decel code.  Was 100!
+-    static final double SCALE_ADJUST = 3.0;  // also use 4.0, 1.8?  Scaling factor used in encoderDiff calculation
+-    // End straight variables
+-    // ---------------------
+-
+-    // ---------------------
+-    // Imu variables
+-    BNO055IMU imu;
+-    Orientation angles;
+-    Acceleration gravity;
+-    private float allowableHeadingDeviation = 3.0f;
+-    // End imu variables
+-    // ---------------------
++    Pipeline modifyPipeline = new Pipeline();
++    // For a webcam (uncomment below)
++    //private OpenCvWebcam webCam;
++    // For a phone camera (uncomment below)
++    private  OpenCvCamera webCam;
++    private boolean isCameraStreaming = false;
++    private int resultROI;
+ 
+     private DcMotor LF = null;
+     private DcMotor RF = null;
+     private DcMotor LB = null;
+     private DcMotor RB = null;
+-
+     private CRServo spinspinducky = null;
+-    private Servo dumper = null;
++    private CRServo intake = null;
+     private DcMotor armboom = null;
++    private Servo platform = null;
+ 
+-    // ---------------------
+-    // Bucket variables
+-    private static final float BUCKETCLEAR = .8f;
+-    private static final float BUCKETDUMP = 0f;
+-    private static final float BUCKETIN = 1f;
+-    // End bucket variables
+-    // ---------------------
++    static final float MAX_SPEED = 1.0f;
++    static final float MIN_SPEED = 0.4f;
++    static final int ACCEL = 75;  // Scaling factor used in accel / decel code.  Was 100!
++    public float desiredHeading;
+ 
+-    static final float STRAFE_MOD = 18f; // Changes desired distance to encoder ticks.
++    private static final int ARM_REST = 50;
++    private static final int ARM_HIGH = 775;
++    private static final int ARM_MED = 950;
++    private static final int ARM_LOW = 1050;
++
++    BNO055IMU imu;
++    Orientation angles;
++    Acceleration gravity;
+ 
+     @Override
+     public void runOpMode() throws InterruptedException {
+-        // Initializations
++        int cameraMonitorViewId2 = hardwareMap.appContext.getResources().getIdentifier(
++                "cameraMonitorViewId",
++                "id",
++                hardwareMap.appContext.getPackageName());
++        // For a webcam (uncomment below)
++        webCam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId2);
++
++        // For a phone camera (uncomment below)
++        // webCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId2);
++        webCam.setPipeline(modifyPipeline);
++        webCam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
++            @Override
++            public void onOpened() {
++                webCam.startStreaming(320, 240);
++                telemetry.addData("Pipeline: ", "Initialized");
++                telemetry.update();
++                isCameraStreaming = true;
++            }
++
++            @Override
++            public void onError(int errorCode) {
++                telemetry.addData("Error: ", "Something went wrong :(");
++                telemetry.update();
++            }
++        });
++
++        LF = hardwareMap.get(DcMotor.class, "LF");
++        RF = hardwareMap.get(DcMotor.class, "RF");
++        LB = hardwareMap.get(DcMotor.class, "LB");
++        RB = hardwareMap.get(DcMotor.class, "RB");
++        armboom = hardwareMap.get(DcMotor.class, "armboom");
++        intake = hardwareMap.get(CRServo.class, "intake");
++        spinspinducky = hardwareMap.get(CRServo.class, "spinspinducky");
++        platform = hardwareMap.get(Servo.class, "platform");
++
++        LF.setDirection(DcMotor.Direction.REVERSE);  // motor direction set for mecanum wheels with mitre gears
++        RF.setDirection(DcMotor.Direction.FORWARD);
++        LB.setDirection(DcMotor.Direction.REVERSE);
++        RB.setDirection(DcMotor.Direction.FORWARD);
+ 
+         // IMU initialization
+         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+-        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
++        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+         parameters.loggingEnabled = true;
+         parameters.loggingTag = "IMU";
+         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
++
+         imu = hardwareMap.get(BNO055IMU.class, "imu");
+         imu.initialize(parameters);
+ 
+-        // Initialize motors
+-        LF = hardwareMap.get(DcMotor.class, "LF");
+-        RF = hardwareMap.get(DcMotor.class, "RF");
+-        LB = hardwareMap.get(DcMotor.class, "LB");
+-        RB = hardwareMap.get(DcMotor.class, "RB");
++        // Set up our telemetry dashboard
++        composeTelemetry();  // need to add this method at end of code
+ 
+-        spinspinducky = hardwareMap.get(CRServo.class, "spinspinducky");
+-        dumper  = hardwareMap.get(Servo.class, "dumper");
+-        armboom = hardwareMap.get(DcMotor.class, "armboom");
++        desiredHeading = getHeading();
+ 
+-        LF.setDirection(DcMotor.Direction.REVERSE);
+-        RF.setDirection(DcMotor.Direction.FORWARD);
+-        LB.setDirection(DcMotor.Direction.REVERSE);
+-        RB.setDirection(DcMotor.Direction.FORWARD);
++        moveUtils.initialize(LF, RF, LB, RB, imu, desiredHeading);
++        actuatorUtils.initializeActuator(armboom, spinspinducky, intake);
++        actuatorUtils.initializeActuatorMovement(LF, RF, LB, RB);
++        moveUtils.resetEncoders();
+ 
+-        armboom.setDirection(DcMotorSimple.Direction.FORWARD);
++        Long startTime = System.currentTimeMillis();
++        Long currTime = startTime;
+ 
+-        resetEncoders();
+-
++        // Troubleshooting only recommend < 5000
++     /*   while (currTime - startTime < 20000) {
++            if (currTime - startTime < 500) {
++                telemetry.addData("Camera: ", "Waiting to make sure valid data is incoming");
++            } else {
++                telemetry.addData("Time Delta: ", (currTime - startTime));
++                resultROI = modifyPipeline.getResultROI();
++                switch (resultROI) {
++                    case 0:
++                        telemetry.addData("Resulting ROI: ", "Middle");
++                        break;
++                    case 1:
++                        telemetry.addData("Resulting ROI: ", "Right");
++                        break;
++                    case 2:
++                        telemetry.addData("Resulting ROI: ", "Left");
++                        break;
++                    default:
++                        telemetry.addData("Resulting ROI: ", "Something went wrong.");
++                        break;
++                }
++                telemetry.update();
++            }
++            currTime = System.currentTimeMillis();
++        }*/
++        platform.setPosition(90);
+         waitForStart();
++        while (currTime - startTime < 2000) {
++            telemetry.addData("Time Delta: ", (currTime - startTime));
++            resultROI = modifyPipeline.getResultROI();
++            switch (resultROI) {
++                case 0:
++                    telemetry.addData("Resulting ROI: ", "Middle");
++                    break;
++                case 1:
++                    telemetry.addData("Resulting ROI: ", "Right");
++                    break;
++                case 2:
++                    telemetry.addData("Resulting ROI: ", "Left");
++                    break;
++                default:
++                    telemetry.addData("Resulting ROI: ", "Something went wrong.");
++                    break;
++            }
++            telemetry.update();
++            currTime = System.currentTimeMillis();
++        }
++        // Have started.
++        // First thing, stop camera.
++        if (isCameraStreaming) {
++            webCam.stopStreaming();
++            webCam.closeCameraDevice();
++            isCameraStreaming = false;
++        }
++
++        platform.setPosition(0);
++
++        moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
++        moveUtils.turnCW(30);
++
++        switch (resultROI) {
++            case 0:
++                // Middle (Middle Level)
++                moveUtils.goStraight(-8f, MAX_SPEED, MIN_SPEED, ACCEL);
++                actuatorUtils.moveThatArm(ARM_MED);
++                moveUtils.goStraight(-2, MAX_SPEED, MIN_SPEED, ACCEL);
++                actuatorUtils.intakeMove(-1);
++                sleep(3000);
++                actuatorUtils.intakeMove(0);
++                actuatorUtils.moveThatArm(ARM_REST);
++                moveUtils.goStraight(10f,MAX_SPEED,MIN_SPEED,ACCEL);
++                moveUtils.turnACW(30);
++                break;
++            case 1:
++                // Right (Top Level)
++                moveUtils.goStraight(-14, MAX_SPEED, MIN_SPEED, ACCEL);
++                actuatorUtils.moveThatArm(ARM_HIGH);
++                actuatorUtils.intakeMove(-1);
++                sleep(3000);
++                actuatorUtils.intakeMove(0);
++                actuatorUtils.moveThatArm(ARM_REST);
++                moveUtils.goStraight(15,MAX_SPEED,MIN_SPEED,ACCEL);
++                moveUtils.turnACW(30);
++
++                break;
++            default:
++                // Left (Bottom Level)
++                moveUtils.goStraight(-7, MAX_SPEED, MIN_SPEED, ACCEL);
++                actuatorUtils.moveThatArm(ARM_LOW);
++                moveUtils.goStraight(-1, MAX_SPEED, MIN_SPEED, ACCEL);
++                actuatorUtils.intakeMove(-1);
++                sleep(3000);
++                actuatorUtils.intakeMove(0);
++                actuatorUtils.moveThatArm(ARM_REST);
++                moveUtils.goStraight(8,MAX_SPEED,MIN_SPEED,ACCEL);
++                moveUtils.turnACW(30);
++
++                break;
++        }
++        moveUtils.turnCW(90);
++        moveUtils.strafeBuddy(-30);
++        moveUtils.goStraight(37,MAX_SPEED,MIN_SPEED,ACCEL);
++
++    }
+ 
+-        // -------------------------
+-        // Path belongs here.
+-        // This should be the only part that is modified once it is correct.
++    void composeTelemetry() {
+ 
+-        goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
+-        turnCW(45);
+-        goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);
+-        //movethatarm(78 whatever numbers y'all need);
+-        turnCW(45);
+-        goStraight(50,1,MIN_SPEED,ACCEL);
++        // At the beginning of each telemetry update, grab a bunch of data
++        // from the IMU that we will then display in separate lines.
++        telemetry.addAction(new Runnable() {
++            @Override
++            public void run() {
++                // Acquiring the angles is relatively expensive; we don't want
++                // to do that in each of the three items that need that info, as that's
++                // three times the necessary expense.
++                angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
++                gravity = imu.getGravity();
++            }
++        });
+ 
+-        // End Modifications of path
+-        // -------------------------
+-    }
++        telemetry.addLine()
++                .addData("status", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return imu.getSystemStatus().toShortString();
++                    }
++                })
++                .addData("calib", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return imu.getCalibrationStatus().toString();
++                    }
++                });
+ 
++        telemetry.addLine()
++                .addData("heading", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return formatAngle(angles.angleUnit, angles.firstAngle);
++                    }
++                })
++                .addData("roll", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return formatAngle(angles.angleUnit, angles.secondAngle);
++                    }
++                })
++                .addData("pitch", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return formatAngle(angles.angleUnit, angles.thirdAngle);
++                    }
++                });
+ 
+-    private float getHeading() {
++    }
++
++    String formatAngle(AngleUnit angleUnit, double angle) {
++        return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
++    }
++
++    String formatDegrees(double degrees) {
++        return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
++    }
++
++    public float getHeading() {
+         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC,
+                 AxesOrder.ZYX,
+                 DEGREES);
+         return angles.firstAngle;
+     }
+-
+-    public void resetEncoders() {
+-        LF.setPower(0);
+-        RF.setPower(0);
+-        LB.setPower(0);
+-        RB.setPower(0);
+-
+-        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-
+-        // Just a little time to make sure encoders have reset
+-        sleep(200);
+-
+-        // Only using the LB Encoder
+-        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+-        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+-        LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+-        RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+-
+-        // Not technically encoder but...
+-        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-    }
+-
+-    private void turnCW(float turnDegrees) {
+-        desiredHeading -= turnDegrees;
+-        if (desiredHeading <= -180) {
+-            desiredHeading += 360;
+-        }
+-        turnToHeading();
+-    }
+-
+-    private void turnACW(float turnDegrees) {
+-        desiredHeading += turnDegrees;
+-        if (desiredHeading > 180) {
+-            desiredHeading -= 360;
+-        }
+-        turnToHeading();
+-    }
+-
+-    private void turnToHeading() {
+-        boolean isCW = deltaHeading() > 0;
+-
+-        if (isCW) {
+-            telemetry.addData("Turning ", "CW");
+-            // 1st stage - high power rough heading.
+-            if (deltaHeading() > TURN_HIGH_ANGLE) {
+-                setAllMotorsPower(TURN_SPEED_HIGH);
+-                while (deltaHeading() > TURN_HIGH_ANGLE) {
+-                }
+-            }
+-            // 2nd stage - low power fine heading.
+-            if (deltaHeading() > TURN_LOW_ANGLE) {
+-                setAllMotorsPower(TURN_SPEED_LOW);
+-                while (deltaHeading() > TURN_LOW_ANGLE) {
+-                }
+-            }
+-        } else { // Going ACW
+-            telemetry.addData("Turning ", "ACW");
+-            // 1st stage - high power rough heading.
+-            if (deltaHeading() < -TURN_HIGH_ANGLE) {
+-                setAllMotorsPower(-TURN_SPEED_HIGH);
+-                while (deltaHeading() < -TURN_HIGH_ANGLE) {
+-                }
+-            }
+-            // 2nd stage - low power fine heading.
+-            if (deltaHeading() < -TURN_LOW_ANGLE) {
+-                setAllMotorsPower(-TURN_SPEED_LOW);
+-                while (deltaHeading() < -TURN_LOW_ANGLE) {
+-                }
+-            }
+-        }
+-        resetEncoders();
+-        telemetry.addData("Final Heading: ", getHeading());
+-        telemetry.addData("Position ", imu.getPosition());
+-        telemetry.update();
+-    }
+-
+-    private void setAllMotorsPower(float turnPower) {
+-        LF.setPower(turnPower);
+-        LB.setPower(turnPower);
+-        RF.setPower(-turnPower);
+-        RB.setPower(-turnPower);
+-    }
+-
+-    private float deltaHeading() {
+-        float dH = getHeading() - desiredHeading;
+-        if (dH < -180) { dH += 360; }
+-        if (dH > 180) { dH -= 360; }
+-        return dH;
+-    }
+-    public void goStraight(double totalDistIn, double maxPower, double minPower, int accel) {
+-        int distance;
+-        int rampUpDist;
+-        int rampDownDist;
+-        double currentPower;
+-        int currentDistLB = 0;
+-        int currentDistRB = 0;
+-        int encoderDiff;  // difference in LB and RB wheel encoder count
+-        double powerL;  // modified Left-side motor power to equalize motors
+-        double powerR;  // modified Right-side motor power to equalize motors
+-        boolean forward = true;
+-
+-        // Use this to determine to go backward or forward
+-        // + totalDistIn means go forward 'totalDistIn' inches
+-        // - totalDistIn means go backward 'totalDistIn' inches
+-
+-        if (totalDistIn > 0) {
+-            forward = true;
+-        } else {
+-            forward = false;
+-        }
+-
+-
+-        // Convert inches to encoder ticks
+-        distance = (int) (Math.abs(totalDistIn) * COUNTS_PER_INCH);  // distance is encoder ticks, not inches
+-        rampUpDist = (int) ((maxPower - minPower) * 100 * accel);  // calculates number of encoder ticks (distance) to get to full speed
+-        rampDownDist = distance - rampUpDist;  // calculates when (in encoder ticks) to start slowing down
+-
+-        // Need our ramp-up distance to be less than half or else would not have time to decelerate
+-        if (rampUpDist > distance / 2) {
+-            rampUpDist = distance / 2;
+-            rampDownDist = distance / 2;
+-        }
+-
+-        // Prepare motor encoders, turns off since not running to set position
+-        // Calculating power instead
+-        resetEncoders();
+-
+-        // Setting power to motors
+-        currentPower = minPower;
+-        if (forward) {
+-            LF.setPower(currentPower);
+-            RF.setPower(currentPower);
+-            LB.setPower(currentPower);
+-            RB.setPower(currentPower);
+-        } else {
+-            LF.setPower(-currentPower);
+-            RF.setPower(-currentPower);
+-            LB.setPower(-currentPower);
+-            RB.setPower(-currentPower);
+-        }
+-        // MKing - go forward or backward AND use encoder comparison code for error correction!
+-        while (currentDistLB < distance) {  // While distance not met
+-            if (currentDistLB < rampUpDist) {  // Accelerating
+-                currentPower = minPower + ((double) currentDistLB / (double) accel) / 100.0;
+-                maxPower = currentPower;
+-            } else if (currentDistRB >= rampDownDist) {  // Decelerating
+-                currentPower = maxPower - (((double) currentDistLB - (double) rampDownDist) / (double) accel) / 100.0;
+-            }
+-
+-            currentDistLB = Math.abs(LB.getCurrentPosition());
+-            currentDistRB = Math.abs(RB.getCurrentPosition());
+-
+-            // MKing - code for encoder comparison error correcting to run straight!
+-            if (currentDistLB < currentDistRB) {  // Left side is lagging right side
+-                encoderDiff = currentDistRB - currentDistLB;
+-                powerL = currentPower;
+-                powerR = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST)) / 100.0);
+-            } else {  // Right side is lagging left side
+-                encoderDiff = currentDistLB - currentDistRB;
+-                powerR = currentPower;
+-                powerL = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST)) / 100.0);
+-            }
+-
+-            if (forward) {
+-                LF.setPower(powerL);
+-                RF.setPower(powerR);
+-                LB.setPower(powerL);
+-                RB.setPower(powerR);
+-            } else {
+-                LF.setPower(-powerL);
+-                RF.setPower(-powerR);
+-                LB.setPower(-powerL);
+-                RB.setPower(-powerR);
+-            }
+-        }
+-        resetEncoders();
+-
+-    }
+-
+-    public void strafeBuddy(float distanceMoveInches) {
+-
+-        distanceMoveInches*=STRAFE_MOD;
+-
+-        if (distanceMoveInches > 0) {
+-            while (LB.getCurrentPosition() < (distanceMoveInches) && RB.getCurrentPosition() < (distanceMoveInches) && opModeIsActive()) {
+-                LF.setPower(MAX_SPEED);
+-                RF.setPower(-MAX_SPEED);
+-                RB.setPower(MAX_SPEED);
+-                LB.setPower(-MAX_SPEED);
+-            }
+-        } else {
+-            distanceMoveInches = 0-distanceMoveInches;
+-            while (LB.getCurrentPosition() < (distanceMoveInches) && RB.getCurrentPosition() < (distanceMoveInches) && opModeIsActive()) {
+-                LF.setPower(-MAX_SPEED);
+-                RF.setPower(MAX_SPEED);
+-                RB.setPower(-MAX_SPEED);
+-                LB.setPower(MAX_SPEED);
+-            }
+-        }
+-
+-        // Once the strafe is complete, reset the state of the motors.
+-
+-        LF.setPower(0);
+-        RF.setPower(0);
+-        RB.setPower(0);
+-        LB.setPower(0);
+-
+-        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-
+-        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+-        LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+-        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+-        RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+-
+-        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-
+-        resetEncoders();
+-    }
+-    private void movethatarm(int getthatdistance)
+-    {
+-
+-        while (armboom.getCurrentPosition() <  getthatdistance)
+-        {
+-            armboom.setPower(1);
+-        }
+-
+-    }
+-    private void spinThatDucky (boolean isRed)
+-    {
+-        resetEncoders();
+-        LF.setPower(.05);
+-        LB.setPower(.05);
+-        RF.setPower(.05);
+-        RB.setPower(.05);
+-        if (isRed) {
+-            spinspinducky.setPower(-1);
+-        }
+-        else {
+-            spinspinducky.setPower(1);
+-        }
+-        sleep(1000);
+-        resetEncoders();
+-        sleep(4000);
+-        spinspinducky.setPower(0);
+-
+-    }
+-
+-
+ }
+Index: TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SWDeweyDuck.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.firstinspires.ftc.teamcode;\r\n\r\nimport com.qualcomm.hardware.bosch.BNO055IMU;\r\nimport com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;\r\nimport com.qualcomm.robotcore.eventloop.opmode.Autonomous;\r\nimport com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;\r\nimport com.qualcomm.robotcore.hardware.CRServo;\r\nimport com.qualcomm.robotcore.hardware.DcMotor;\r\nimport com.qualcomm.robotcore.hardware.DcMotorSimple;\r\nimport com.qualcomm.robotcore.hardware.Servo;\r\n\r\nimport org.firstinspires.ftc.robotcore.external.navigation.Acceleration;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.AxesReference;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.Orientation;\r\n\r\nimport static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.*;\r\n\r\n@Autonomous(name=\"SWDeweyDuck\", group=\"\")\r\n\r\npublic class SWDeweyDuck extends LinearOpMode {\r\n    // Declarations\r\n    private float desiredHeading;\r\n\r\n    // ---------------------\r\n    // Turn variables - this took a lot of experimentation.  Don't recommend changing.\r\n    private static final float TURN_SPEED_HIGH = 1f;\r\n    private static final float TURN_SPEED_LOW = 0.15f;\r\n    private static final float TURN_HIGH_ANGLE = 45.0f;\r\n    private static final float TURN_LOW_ANGLE = 5.0f;\r\n    // End turn variables\r\n    // ---------------------\r\n\r\n    // ---------------------\r\n    // Variables for straight method\r\n    static final double EncoderTicks = 537.6;\r\n    static final double WHEEL_DIAMETER_INCHES = 4.0;\r\n    static final float ENCODER_TICKS_MOD = 34F/25F;\r\n    static final double COUNTS_PER_INCH = EncoderTicks / (3.1416 * WHEEL_DIAMETER_INCHES * ENCODER_TICKS_MOD);    // MKING - corrected formula on 11/27/20\r\n    static final double MAX_SPEED = 0.8;\r\n    static final double MIN_SPEED = 0.3;\r\n    static final int ACCEL = 75;  // Scaling factor used in accel / decel code.  Was 100!\r\n    static final double SCALE_ADJUST = 3.0;  // also use 4.0, 1.8?  Scaling factor used in encoderDiff calculation\r\n    // End straight variables\r\n    // ---------------------\r\n\r\n    // ---------------------\r\n    // Imu variables\r\n    BNO055IMU imu;\r\n    Orientation angles;\r\n    Acceleration gravity;\r\n    private float allowableHeadingDeviation = 3.0f;\r\n    // End imu variables\r\n    // ---------------------\r\n\r\n    private DcMotor LF = null;\r\n    private DcMotor RF = null;\r\n    private DcMotor LB = null;\r\n    private DcMotor RB = null;\r\n\r\n    private CRServo spinspinducky = null;\r\n    private Servo dumper = null;\r\n    private DcMotor armboom = null;\r\n\r\n    // ---------------------\r\n    // Bucket variables\r\n    private static final float BUCKETCLEAR = .8f;\r\n    private static final float BUCKETDUMP = 0f;\r\n    private static final float BUCKETIN = 1f;\r\n    // End bucket variables\r\n    // ---------------------\r\n\r\n    static final float STRAFE_MOD = 18f; // Changes desired distance to encoder ticks.\r\n\r\n    @Override\r\n    public void runOpMode() throws InterruptedException {\r\n        // Initializations\r\n\r\n        // IMU initialization\r\n        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();\r\n        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;\r\n        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;\r\n        parameters.calibrationDataFile = \"BNO055IMUCalibration.json\";\r\n        parameters.loggingEnabled = true;\r\n        parameters.loggingTag = \"IMU\";\r\n        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();\r\n        imu = hardwareMap.get(BNO055IMU.class, \"imu\");\r\n        imu.initialize(parameters);\r\n\r\n        // Initialize motors\r\n        LF = hardwareMap.get(DcMotor.class, \"LF\");\r\n        RF = hardwareMap.get(DcMotor.class, \"RF\");\r\n        LB = hardwareMap.get(DcMotor.class, \"LB\");\r\n        RB = hardwareMap.get(DcMotor.class, \"RB\");\r\n\r\n        spinspinducky = hardwareMap.get(CRServo.class, \"spinspinducky\");\r\n        dumper  = hardwareMap.get(Servo.class, \"dumper\");\r\n        armboom = hardwareMap.get(DcMotor.class, \"armboom\");\r\n\r\n        LF.setDirection(DcMotor.Direction.REVERSE);\r\n        RF.setDirection(DcMotor.Direction.FORWARD);\r\n        LB.setDirection(DcMotor.Direction.REVERSE);\r\n        RB.setDirection(DcMotor.Direction.FORWARD);\r\n\r\n        armboom.setDirection(DcMotorSimple.Direction.FORWARD);\r\n\r\n        resetEncoders();\r\n\r\n        waitForStart();\r\n\r\n        // -------------------------\r\n        // Path belongs here.\r\n        // This should be the only part that is modified once it is correct.\r\n\r\n        strafeBuddy(-120);\r\n        goStraight(8,MAX_SPEED,MIN_SPEED,ACCEL);\r\n        spinThatDucky(false);\r\n        sleep(1000);\r\n        spinThatDucky(false);\r\n        goStraight(-24,MAX_SPEED,MIN_SPEED,ACCEL);\r\n        strafeBuddy(-2);\r\n\r\n        // End Modifications of path\r\n        // -------------------------\r\n    }\r\n\r\n\r\n    private float getHeading() {\r\n        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC,\r\n                AxesOrder.ZYX,\r\n                DEGREES);\r\n        return angles.firstAngle;\r\n    }\r\n\r\n    public void resetEncoders() {\r\n        LF.setPower(0);\r\n        RF.setPower(0);\r\n        LB.setPower(0);\r\n        RB.setPower(0);\r\n\r\n        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n\r\n        // Just a little time to make sure encoders have reset\r\n        sleep(200);\r\n\r\n        // Only using the LB Encoder\r\n        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n\r\n        // Not technically encoder but...\r\n        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n    }\r\n\r\n    private void turnCW(float turnDegrees) {\r\n        desiredHeading -= turnDegrees;\r\n        if (desiredHeading <= -180) {\r\n            desiredHeading += 360;\r\n        }\r\n        turnToHeading();\r\n    }\r\n\r\n    private void turnACW(float turnDegrees) {\r\n        desiredHeading += turnDegrees;\r\n        if (desiredHeading > 180) {\r\n            desiredHeading -= 360;\r\n        }\r\n        turnToHeading();\r\n    }\r\n\r\n    private void turnToHeading() {\r\n        boolean isCW = deltaHeading() > 0;\r\n\r\n        if (isCW) {\r\n            telemetry.addData(\"Turning \", \"CW\");\r\n            // 1st stage - high power rough heading.\r\n            if (deltaHeading() > TURN_HIGH_ANGLE) {\r\n                setAllMotorsPower(TURN_SPEED_HIGH);\r\n                while (deltaHeading() > TURN_HIGH_ANGLE) {\r\n                }\r\n            }\r\n            // 2nd stage - low power fine heading.\r\n            if (deltaHeading() > TURN_LOW_ANGLE) {\r\n                setAllMotorsPower(TURN_SPEED_LOW);\r\n                while (deltaHeading() > TURN_LOW_ANGLE) {\r\n                }\r\n            }\r\n        } else { // Going ACW\r\n            telemetry.addData(\"Turning \", \"ACW\");\r\n            // 1st stage - high power rough heading.\r\n            if (deltaHeading() < -TURN_HIGH_ANGLE) {\r\n                setAllMotorsPower(-TURN_SPEED_HIGH);\r\n                while (deltaHeading() < -TURN_HIGH_ANGLE) {\r\n                }\r\n            }\r\n            // 2nd stage - low power fine heading.\r\n            if (deltaHeading() < -TURN_LOW_ANGLE) {\r\n                setAllMotorsPower(-TURN_SPEED_LOW);\r\n                while (deltaHeading() < -TURN_LOW_ANGLE) {\r\n                }\r\n            }\r\n        }\r\n        resetEncoders();\r\n        telemetry.addData(\"Final Heading: \", getHeading());\r\n        telemetry.addData(\"Position \", imu.getPosition());\r\n        telemetry.update();\r\n    }\r\n\r\n    private void setAllMotorsPower(float turnPower) {\r\n        LF.setPower(turnPower);\r\n        LB.setPower(turnPower);\r\n        RF.setPower(-turnPower);\r\n        RB.setPower(-turnPower);\r\n    }\r\n\r\n    private float deltaHeading() {\r\n        float dH = getHeading() - desiredHeading;\r\n        if (dH < -180) { dH += 360; }\r\n        if (dH > 180) { dH -= 360; }\r\n        return dH;\r\n    }\r\n    public void goStraight(double totalDistIn, double maxPower, double minPower, int accel) {\r\n        int distance;\r\n        int rampUpDist;\r\n        int rampDownDist;\r\n        double currentPower;\r\n        int currentDistLB = 0;\r\n        int currentDistRB = 0;\r\n        int encoderDiff;  // difference in LB and RB wheel encoder count\r\n        double powerL;  // modified Left-side motor power to equalize motors\r\n        double powerR;  // modified Right-side motor power to equalize motors\r\n        boolean forward = true;\r\n\r\n        // Use this to determine to go backward or forward\r\n        // + totalDistIn means go forward 'totalDistIn' inches\r\n        // - totalDistIn means go backward 'totalDistIn' inches\r\n\r\n        if (totalDistIn > 0) {\r\n            forward = true;\r\n        } else {\r\n            forward = false;\r\n        }\r\n\r\n\r\n        // Convert inches to encoder ticks\r\n        distance = (int) (Math.abs(totalDistIn) * COUNTS_PER_INCH);  // distance is encoder ticks, not inches\r\n        rampUpDist = (int) ((maxPower - minPower) * 100 * accel);  // calculates number of encoder ticks (distance) to get to full speed\r\n        rampDownDist = distance - rampUpDist;  // calculates when (in encoder ticks) to start slowing down\r\n\r\n        // Need our ramp-up distance to be less than half or else would not have time to decelerate\r\n        if (rampUpDist > distance / 2) {\r\n            rampUpDist = distance / 2;\r\n            rampDownDist = distance / 2;\r\n        }\r\n\r\n        // Prepare motor encoders, turns off since not running to set position\r\n        // Calculating power instead\r\n        resetEncoders();\r\n\r\n        // Setting power to motors\r\n        currentPower = minPower;\r\n        if (forward) {\r\n            LF.setPower(currentPower);\r\n            RF.setPower(currentPower);\r\n            LB.setPower(currentPower);\r\n            RB.setPower(currentPower);\r\n        } else {\r\n            LF.setPower(-currentPower);\r\n            RF.setPower(-currentPower);\r\n            LB.setPower(-currentPower);\r\n            RB.setPower(-currentPower);\r\n        }\r\n        // MKing - go forward or backward AND use encoder comparison code for error correction!\r\n        while (currentDistLB < distance) {  // While distance not met\r\n            if (currentDistLB < rampUpDist) {  // Accelerating\r\n                currentPower = minPower + ((double) currentDistLB / (double) accel) / 100.0;\r\n                maxPower = currentPower;\r\n            } else if (currentDistRB >= rampDownDist) {  // Decelerating\r\n                currentPower = maxPower - (((double) currentDistLB - (double) rampDownDist) / (double) accel) / 100.0;\r\n            }\r\n\r\n            currentDistLB = Math.abs(LB.getCurrentPosition());\r\n            currentDistRB = Math.abs(RB.getCurrentPosition());\r\n\r\n            // MKing - code for encoder comparison error correcting to run straight!\r\n            if (currentDistLB < currentDistRB) {  // Left side is lagging right side\r\n                encoderDiff = currentDistRB - currentDistLB;\r\n                powerL = currentPower;\r\n                powerR = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST)) / 100.0);\r\n            } else {  // Right side is lagging left side\r\n                encoderDiff = currentDistLB - currentDistRB;\r\n                powerR = currentPower;\r\n                powerL = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST)) / 100.0);\r\n            }\r\n\r\n            if (forward) {\r\n                LF.setPower(powerL);\r\n                RF.setPower(powerR);\r\n                LB.setPower(powerL);\r\n                RB.setPower(powerR);\r\n            } else {\r\n                LF.setPower(-powerL);\r\n                RF.setPower(-powerR);\r\n                LB.setPower(-powerL);\r\n                RB.setPower(-powerR);\r\n            }\r\n        }\r\n        resetEncoders();\r\n\r\n    }\r\n\r\n    public void strafeBuddy(float distanceMoveInches) {\r\n\r\n        distanceMoveInches*=STRAFE_MOD;\r\n\r\n        if (distanceMoveInches > 0) {\r\n            while (LB.getCurrentPosition() < (distanceMoveInches) && RB.getCurrentPosition() < (distanceMoveInches) && opModeIsActive()) {\r\n                LF.setPower(MAX_SPEED);\r\n                RF.setPower(-MAX_SPEED);\r\n                RB.setPower(MAX_SPEED);\r\n                LB.setPower(-MAX_SPEED);\r\n            }\r\n        } else {\r\n            distanceMoveInches = 0-distanceMoveInches;\r\n            while (LB.getCurrentPosition() < (distanceMoveInches) && RB.getCurrentPosition() < (distanceMoveInches) && opModeIsActive()) {\r\n                LF.setPower(-MAX_SPEED);\r\n                RF.setPower(MAX_SPEED);\r\n                RB.setPower(-MAX_SPEED);\r\n                LB.setPower(MAX_SPEED);\r\n            }\r\n        }\r\n\r\n        // Once the strafe is complete, reset the state of the motors.\r\n\r\n        LF.setPower(0);\r\n        RF.setPower(0);\r\n        RB.setPower(0);\r\n        LB.setPower(0);\r\n\r\n        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n\r\n        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n\r\n        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n\r\n        resetEncoders();\r\n    }\r\n    private void movethatarm(int getthatdistance)\r\n    {\r\n\r\n        while (armboom.getCurrentPosition() <  getthatdistance)\r\n        {\r\n            armboom.setPower(1);\r\n        }\r\n\r\n    }\r\n    private void spinThatDucky (boolean isRed)\r\n    {\r\n        resetEncoders();\r\n        LF.setPower(.05);\r\n        LB.setPower(.05);\r\n        RF.setPower(.05);\r\n        RB.setPower(.05);\r\n        if (isRed) {\r\n            spinspinducky.setPower(-1);\r\n        }\r\n        else {\r\n            spinspinducky.setPower(1);\r\n        }\r\n        sleep(1000);\r\n        resetEncoders();\r\n        sleep(4000);\r\n        spinspinducky.setPower(0);\r\n\r\n    }\r\n\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SWDeweyDuck.java b/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SWDeweyDuck.java
+--- a/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SWDeweyDuck.java	(revision 86eca18af10e07d532b686584c85b48ac573905b)
++++ b/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SWDeweyDuck.java	(date 1641758941439)
+@@ -117,7 +117,7 @@
+         goStraight(8,MAX_SPEED,MIN_SPEED,ACCEL);
+         spinThatDucky(false);
+         sleep(1000);
+-        spinThatDucky(false);
++
+         goStraight(-24,MAX_SPEED,MIN_SPEED,ACCEL);
+         strafeBuddy(-2);
+ 
+Index: TeamCode/src/main/java/org/firstinspires/ftc/teamcode/Pipeline.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.firstinspires.ftc.teamcode;\r\n\r\nimport org.checkerframework.checker.units.qual.C;\r\nimport org.opencv.core.Core;\r\nimport org.opencv.core.Mat;\r\nimport org.opencv.core.Scalar;\r\nimport org.opencv.imgproc.Imgproc;\r\nimport org.openftc.easyopencv.OpenCvPipeline;\r\n\r\npublic class Pipeline extends OpenCvPipeline {\r\n    Mat mat = new Mat();\r\n    // Color Evaluation\r\n    public int lowX = 200;\r\n    public int lowY = 120;\r\n    public int lowZ = 120;\r\n    public int highX = 255;\r\n    public int highY = 255;\r\n    public int highZ = 255;\r\n\r\n    // Image Evaluation\r\n    public double pixelCount;\r\n\r\n    @Override\r\n    public Mat processFrame(Mat input)\r\n    {\r\n        Imgproc.cvtColor(input, mat, Imgproc.COLOR_BGR2RGBA);\r\n        Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGBA2BGR);\r\n\r\n        Scalar lowColorValue = new Scalar(lowX, lowY, lowZ);\r\n        Scalar highColorValue = new Scalar(highX, highY, highZ);\r\n        Core.inRange(mat, lowColorValue, highColorValue, mat);\r\n\r\n        int whiteCount = 0;\r\n        int hitCount = 0;\r\n        int middleRow = mat.height()/2;\r\n        int beginRow = middleRow - 50;\r\n        int endRow = middleRow + 50;\r\n        for (int i = 0; i < mat.width(); i++) {\r\n//            for (int j = beginRow; j < endRow; j++) {\r\n                if (mat.get(middleRow, i)[0] > lowX) {\r\n                    whiteCount =+ i;\r\n                    hitCount += 1;\r\n                }\r\n//            }\r\n        }\r\n        if (hitCount != 0) {\r\n            setPixelCount(whiteCount/hitCount);\r\n        } else {\r\n            setPixelCount(0);\r\n        }\r\n\r\n\r\n//        setPixelCount(mat.get(0,0)[0]);\r\n\r\n        return mat;\r\n    }\r\n\r\n    public double getPixelCount() {\r\n        return pixelCount;\r\n    }\r\n\r\n    private void setPixelCount(double newPC) {\r\n        pixelCount = newPC;\r\n    }\r\n\r\n    public int getFrameWidth() {\r\n        return mat.width();\r\n    }\r\n\r\n    public int getFrameHeight() {\r\n        return mat.height();\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/Pipeline.java b/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/Pipeline.java
+--- a/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/Pipeline.java	(revision 86eca18af10e07d532b686584c85b48ac573905b)
++++ b/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/Pipeline.java	(date 1646521868348)
+@@ -1,8 +1,8 @@
+ package org.firstinspires.ftc.teamcode;
+ 
+-import org.checkerframework.checker.units.qual.C;
+ import org.opencv.core.Core;
+ import org.opencv.core.Mat;
++import org.opencv.core.Point;
+ import org.opencv.core.Scalar;
+ import org.opencv.imgproc.Imgproc;
+ import org.openftc.easyopencv.OpenCvPipeline;
+@@ -16,9 +16,14 @@
+     public int highX = 255;
+     public int highY = 255;
+     public int highZ = 255;
+-
+-    // Image Evaluation
+-    public double pixelCount;
++    
++    private int LeftROIStartRow = 180;
++    private int LeftROIEndRow = 320;
++    private int MiddleROIStartRow = 20;
++    private int MiddleROIEndRow = 150;
++    private int ROIStartCol = 60; // Expanded height in case camera tilts
++    private int ROIEndCol = 180; // Expanded height in case camera tilts
++    private int resultROI;
+ 
+     @Override
+     public Mat processFrame(Mat input)
+@@ -26,48 +31,61 @@
+         Imgproc.cvtColor(input, mat, Imgproc.COLOR_BGR2RGBA);
+         Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGBA2BGR);
+ 
++        // Creates mask to identify specific color
+         Scalar lowColorValue = new Scalar(lowX, lowY, lowZ);
+         Scalar highColorValue = new Scalar(highX, highY, highZ);
++        // Applies mask.  Most colors become black, some become white.
+         Core.inRange(mat, lowColorValue, highColorValue, mat);
+ 
+-        int whiteCount = 0;
+-        int hitCount = 0;
+-        int middleRow = mat.height()/2;
+-        int beginRow = middleRow - 50;
+-        int endRow = middleRow + 50;
+-        for (int i = 0; i < mat.width(); i++) {
+-//            for (int j = beginRow; j < endRow; j++) {
+-                if (mat.get(middleRow, i)[0] > lowX) {
+-                    whiteCount =+ i;
+-                    hitCount += 1;
+-                }
+-//            }
+-        }
+-        if (hitCount != 0) {
+-            setPixelCount(whiteCount/hitCount);
+-        } else {
+-            setPixelCount(0);
+-        }
++        // Create the areas we are interested in looking at.
++        Mat LeftROI = mat.submat(LeftROIStartRow, LeftROIEndRow, ROIStartCol, ROIEndCol);
++        Mat MiddleROI = mat.submat(MiddleROIStartRow, MiddleROIEndRow, ROIStartCol, ROIEndCol);
+ 
++        setResultROI(evaluateROIs(LeftROI, MiddleROI));
+ 
+-//        setPixelCount(mat.get(0,0)[0]);
++        LeftROI.release();      // Added by Ohm Raiders to prevent memory leak
++        MiddleROI.release();    // Added by Ohm Raiders
+ 
++        // Adds the rectangles so we can see where we are looking (the ROIs)
++        Imgproc.rectangle(mat, new Point(ROIStartCol, LeftROIStartRow), new Point(ROIEndCol, LeftROIEndRow), new Scalar(128,128,128), 2);
++        Imgproc.rectangle(mat, new Point(ROIStartCol, MiddleROIStartRow), new Point(ROIEndCol, MiddleROIEndRow), new Scalar(128,128,128), 2);
+         return mat;
+     }
+ 
+-    public double getPixelCount() {
+-        return pixelCount;
++    private int evaluateROIs(Mat LeftROI, Mat MiddleROI) {
++        // Returns results:
++        // 0 - Left 
++        // 1 - Middle
++        // 2 - Right
++        int LResult = findWhiteCount(LeftROI);
++        int MResult = findWhiteCount(MiddleROI);
++        
++        if (LResult - MResult > 20) {
++            return 0;
++        } else if (MResult - LResult > 20) {
++            return 1;
++        } else {
++            return 2;
++        }
+     }
+ 
+-    private void setPixelCount(double newPC) {
+-        pixelCount = newPC;
++    private int findWhiteCount(Mat roi) {
++        int count = 0;
++        for (int row = 0; row < roi.height(); row++) {
++            for (int col = 0; col < roi.width(); col++) {
++                if (roi.get(row, col)[0] > 1) {
++                    count += 1;
++                }
++            }
++        }
++        return count;
+     }
+ 
+-    public int getFrameWidth() {
+-        return mat.width();
++    public int getResultROI() {
++        return resultROI;
+     }
+ 
+-    public int getFrameHeight() {
+-        return mat.height();
++    private void setResultROI(int roi) {
++        resultROI = roi;
+     }
+ }
+Index: TeamCode/src/main/java/org/firstinspires/ftc/teamcode/findpink.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.firstinspires.ftc.teamcode;\r\n\r\nimport com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;\r\nimport com.qualcomm.robotcore.eventloop.opmode.TeleOp;\r\n\r\nimport org.openftc.easyopencv.OpenCvCamera;\r\nimport org.openftc.easyopencv.OpenCvCameraFactory;\r\nimport org.openftc.easyopencv.OpenCvInternalCamera;\r\n\r\n@TeleOp(name = \"findpink\", group = \"Iterative Opmode\")\r\npublic class findpink extends LinearOpMode {\r\n    Pipeline modifyPipeline = new Pipeline();\r\n    //private OpenCvWebcam webCam;\r\n    private  OpenCvCamera webCam;\r\n    private static String newMessage;\r\n\r\n\r\n    @Override\r\n    public void runOpMode() throws InterruptedException {\r\n        int cameraMonitorViewId2 = hardwareMap.appContext.getResources().getIdentifier(\r\n                \"cameraMonitorViewId\",\r\n                \"id\",\r\n                hardwareMap.appContext.getPackageName());\r\n        //webCam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, \"Webcam\"), cameraMonitorViewId2);\r\n        webCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId2);\r\n        webCam.setPipeline(modifyPipeline);\r\n        webCam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {\r\n            @Override\r\n            public void onOpened() {\r\n                webCam.startStreaming(320, 240);\r\n                telemetry.addData(\"Pipeline: \", \"Initialized\");\r\n                telemetry.update();\r\n            }\r\n\r\n            @Override\r\n            public void onError(int errorCode) {\r\n                telemetry.addData(\"Error: \", \"Something went wrong :(\");\r\n                telemetry.update();\r\n            }\r\n        });\r\n\r\n        Long startTime = System.currentTimeMillis();\r\n        Long currTime = startTime;\r\n\r\n        // Troubleshooting only recommend < 5000\r\n        while (currTime - startTime < 50000) {\r\n            if (currTime - startTime < 500) {\r\n                telemetry.addData(\"Camera: \", \"Waiting to make sure valid data is incoming\");\r\n            } else {\r\n                telemetry.addData(\"Time Delta: \", (currTime - startTime));\r\n                telemetry.addData(\"Pixel Count: \", modifyPipeline.getPixelCount());\r\n            }\r\n            telemetry.update();\r\n            currTime = System.currentTimeMillis();\r\n        }\r\n\r\n        waitForStart();\r\n\r\n        while (opModeIsActive()) {\r\n\r\n            if (gamepad2.right_bumper) {\r\n                modifyPipeline.lowX += 10;\r\n            }\r\n            if (gamepad2.left_bumper) {\r\n                modifyPipeline.lowX -= 10;\r\n            }\r\n            if (gamepad2.a) {\r\n                modifyPipeline.highX += 10;\r\n            }\r\n            if (gamepad2.b) {\r\n                modifyPipeline.highX -= 10;\r\n            }\r\n            if (gamepad2.x) {\r\n                modifyPipeline.lowZ += 10;\r\n            }\r\n            if (gamepad2.y) {\r\n                modifyPipeline.lowZ -= 10;\r\n            }\r\n            if (gamepad2.dpad_right) {\r\n                modifyPipeline.highZ += 10;\r\n            }\r\n            if (gamepad2.dpad_left) {\r\n                modifyPipeline.highZ -= 10;\r\n            }\r\n            telemetry.addData(\"Low: \", modifyPipeline.lowX + \", \" + modifyPipeline.lowY + \", \" + modifyPipeline.lowZ);\r\n            telemetry.addData(\"High: \", modifyPipeline.highX + \", \" + modifyPipeline.highY + \", \" + modifyPipeline.highZ);\r\n            telemetry.update();\r\n            sleep(500);\r\n        }\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/findpink.java b/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/findpink.java
+--- a/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/findpink.java	(revision 86eca18af10e07d532b686584c85b48ac573905b)
++++ b/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/findpink.java	(date 1642528742584)
+@@ -1,19 +1,59 @@
+ package org.firstinspires.ftc.teamcode;
+ 
++import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
++
++import com.qualcomm.hardware.bosch.BNO055IMU;
++import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
++import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
++import com.qualcomm.robotcore.hardware.CRServo;
++import com.qualcomm.robotcore.hardware.DcMotor;
++import com.qualcomm.robotcore.hardware.Servo;
+ 
++import org.firstinspires.ftc.robotcore.external.Func;
++import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
++import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
++import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
++import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
++import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
++import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+ import org.openftc.easyopencv.OpenCvCamera;
+ import org.openftc.easyopencv.OpenCvCameraFactory;
+ import org.openftc.easyopencv.OpenCvInternalCamera;
+ 
+-@TeleOp(name = "findpink", group = "Iterative Opmode")
++import java.util.Locale;
++
++@Autonomous(name = "findpink", group = "")
+ public class findpink extends LinearOpMode {
+     Pipeline modifyPipeline = new Pipeline();
++    // For a webcam (uncomment below)
+     //private OpenCvWebcam webCam;
++    // For a phone camera (uncomment below)
+     private  OpenCvCamera webCam;
+-    private static String newMessage;
++    private boolean isCameraStreaming = false;
++    private int resultROI;
++
++    private DcMotor LF = null;
++    private DcMotor RF = null;
++    private DcMotor LB = null;
++    private DcMotor RB = null;
++    private CRServo spinspinducky = null;
++    private CRServo intake = null;
++    private DcMotor armboom = null;
++    private Servo platform = null;
+ 
++    static final double EncoderTicks = 537.7;
++    static final double WHEEL_DIAMETER_INCHES = 4.0;
++    static final float ENCODER_TICKS_MOD = 1f;
++    static final float MAX_SPEED = 1.0f;
++    static final float MIN_SPEED = 0.4f;
++    static final int ACCEL = 75;  // Scaling factor used in accel / decel code.  Was 100!
++    public float desiredHeading;
++
++    BNO055IMU imu;
++    Orientation angles;
++    Acceleration gravity;
+ 
+     @Override
+     public void runOpMode() throws InterruptedException {
+@@ -21,8 +61,11 @@
+                 "cameraMonitorViewId",
+                 "id",
+                 hardwareMap.appContext.getPackageName());
+-        //webCam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId2);
+-        webCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId2);
++        // For a webcam (uncomment below)
++        webCam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId2);
++
++        // For a phone camera (uncomment below)
++        // webCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId2);
+         webCam.setPipeline(modifyPipeline);
+         webCam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+             @Override
+@@ -30,6 +73,7 @@
+                 webCam.startStreaming(320, 240);
+                 telemetry.addData("Pipeline: ", "Initialized");
+                 telemetry.update();
++                isCameraStreaming = true;
+             }
+ 
+             @Override
+@@ -39,6 +83,41 @@
+             }
+         });
+ 
++        LF = hardwareMap.get(DcMotor.class, "LF");
++        RF = hardwareMap.get(DcMotor.class, "RF");
++        LB = hardwareMap.get(DcMotor.class, "LB");
++        RB = hardwareMap.get(DcMotor.class, "RB");
++        armboom = hardwareMap.get(DcMotor.class, "armboom");
++        intake = hardwareMap.get(CRServo.class, "intake");
++        spinspinducky = hardwareMap.get(CRServo.class, "spinspinducky");
++        platform = hardwareMap.get(Servo.class, "platform");
++
++        LF.setDirection(DcMotor.Direction.REVERSE);  // motor direction set for mecanum wheels with mitre gears
++        RF.setDirection(DcMotor.Direction.FORWARD);
++        LB.setDirection(DcMotor.Direction.REVERSE);
++        RB.setDirection(DcMotor.Direction.FORWARD);
++
++        // IMU initialization
++        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
++        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
++        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
++        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
++        parameters.loggingEnabled = true;
++        parameters.loggingTag = "IMU";
++        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
++
++        imu = hardwareMap.get(BNO055IMU.class, "imu");
++        imu.initialize(parameters);
++
++        // Set up our telemetry dashboard
++        composeTelemetry();  // need to add this method at end of code
++
++        desiredHeading = getHeading();
++
++        moveUtils.initialize(LF, RF, LB, RB, imu, desiredHeading);
++        //acuatorUtils.initialize(armboom, spinspinducky, intake);
++        moveUtils.resetEncoders();
++
+         Long startTime = System.currentTimeMillis();
+         Long currTime = startTime;
+ 
+@@ -48,44 +127,107 @@
+                 telemetry.addData("Camera: ", "Waiting to make sure valid data is incoming");
+             } else {
+                 telemetry.addData("Time Delta: ", (currTime - startTime));
+-                telemetry.addData("Pixel Count: ", modifyPipeline.getPixelCount());
++                resultROI = modifyPipeline.getResultROI();
++                if (resultROI == 0) {
++                    telemetry.addData("Resulting ROI: ", "Left");
++                } else if (resultROI == 1) {
++                    telemetry.addData("Resulting ROI: ", "Middle");
++                } else if (resultROI == 2) {
++                    telemetry.addData("Resulting ROI: ", "Right");
++                } else {
++                    telemetry.addData("Resulting ROI: ", "Something went wrong.");
++                }
+             }
+             telemetry.update();
+             currTime = System.currentTimeMillis();
+         }
+-
++        platform.setPosition(90);
+         waitForStart();
+ 
+-        while (opModeIsActive()) {
++        if (isCameraStreaming) {
++            webCam.stopStreaming();
++            webCam.closeCameraDevice();
++            isCameraStreaming = false;
++        }
++
++        switch (resultROI) {
++            case 0:
++                // Left (Bottom Level)
++                moveUtils.turnACW(90);
++            case 1:
++                // Middle (Middle Level)
++                moveUtils.goStraight(24, MAX_SPEED, MIN_SPEED, ACCEL);
++            default:
++                // Right (Top Level)
++                moveUtils.turnCW(90);
++        }
++        platform.setPosition(0);
++
++    }
++
++    void composeTelemetry() {
+ 
+-            if (gamepad2.right_bumper) {
+-                modifyPipeline.lowX += 10;
++        // At the beginning of each telemetry update, grab a bunch of data
++        // from the IMU that we will then display in separate lines.
++        telemetry.addAction(new Runnable() {
++            @Override
++            public void run() {
++                // Acquiring the angles is relatively expensive; we don't want
++                // to do that in each of the three items that need that info, as that's
++                // three times the necessary expense.
++                angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
++                gravity = imu.getGravity();
+             }
+-            if (gamepad2.left_bumper) {
+-                modifyPipeline.lowX -= 10;
+-            }
+-            if (gamepad2.a) {
+-                modifyPipeline.highX += 10;
+-            }
+-            if (gamepad2.b) {
+-                modifyPipeline.highX -= 10;
+-            }
+-            if (gamepad2.x) {
+-                modifyPipeline.lowZ += 10;
+-            }
+-            if (gamepad2.y) {
+-                modifyPipeline.lowZ -= 10;
+-            }
+-            if (gamepad2.dpad_right) {
+-                modifyPipeline.highZ += 10;
+-            }
+-            if (gamepad2.dpad_left) {
+-                modifyPipeline.highZ -= 10;
+-            }
+-            telemetry.addData("Low: ", modifyPipeline.lowX + ", " + modifyPipeline.lowY + ", " + modifyPipeline.lowZ);
+-            telemetry.addData("High: ", modifyPipeline.highX + ", " + modifyPipeline.highY + ", " + modifyPipeline.highZ);
+-            telemetry.update();
+-            sleep(500);
+-        }
++        });
++
++        telemetry.addLine()
++                .addData("status", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return imu.getSystemStatus().toShortString();
++                    }
++                })
++                .addData("calib", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return imu.getCalibrationStatus().toString();
++                    }
++                });
++
++        telemetry.addLine()
++                .addData("heading", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return formatAngle(angles.angleUnit, angles.firstAngle);
++                    }
++                })
++                .addData("roll", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return formatAngle(angles.angleUnit, angles.secondAngle);
++                    }
++                })
++                .addData("pitch", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return formatAngle(angles.angleUnit, angles.thirdAngle);
++                    }
++                });
++
++    }
++
++    String formatAngle(AngleUnit angleUnit, double angle) {
++        return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
++    }
++
++    String formatDegrees(double degrees) {
++        return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
++    }
++
++    public float getHeading() {
++        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC,
++                AxesOrder.ZYX,
++                DEGREES);
++        return angles.firstAngle;
+     }
+ }
+Index: TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SEDaisyDuck.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package org.firstinspires.ftc.teamcode;\r\n\r\nimport com.qualcomm.hardware.bosch.BNO055IMU;\r\nimport com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;\r\nimport com.qualcomm.robotcore.eventloop.opmode.Autonomous;\r\nimport com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;\r\nimport com.qualcomm.robotcore.hardware.CRServo;\r\nimport com.qualcomm.robotcore.hardware.DcMotor;\r\nimport com.qualcomm.robotcore.hardware.DcMotorSimple;\r\nimport com.qualcomm.robotcore.hardware.Servo;\r\n\r\nimport org.firstinspires.ftc.robotcore.external.navigation.Acceleration;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.AxesReference;\r\nimport org.firstinspires.ftc.robotcore.external.navigation.Orientation;\r\n\r\nimport static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.*;\r\n\r\n@Autonomous(name=\"SEDaisyDuck\", group=\"\")\r\n\r\npublic class SEDaisyDuck extends LinearOpMode {\r\n    // Declarations\r\n    private float desiredHeading;\r\n\r\n    // ---------------------\r\n    // Turn variables - this took a lot of experimentation.  Don't recommend changing.\r\n    private static final float TURN_SPEED_HIGH = 1f;\r\n    private static final float TURN_SPEED_LOW = 0.15f;\r\n    private static final float TURN_HIGH_ANGLE = 45.0f;\r\n    private static final float TURN_LOW_ANGLE = 5.0f;\r\n    // End turn variables\r\n    // ---------------------\r\n\r\n    // ---------------------\r\n    // Variables for straight method\r\n    static final double EncoderTicks = 537.6;\r\n    static final double WHEEL_DIAMETER_INCHES = 4.0;\r\n    static final float ENCODER_TICKS_MOD = 34F/25F;\r\n    static final double COUNTS_PER_INCH = EncoderTicks / (3.1416 * WHEEL_DIAMETER_INCHES * ENCODER_TICKS_MOD);    // MKING - corrected formula on 11/27/20\r\n    static final double MAX_SPEED = 0.8;\r\n    static final double MIN_SPEED = 0.3;\r\n    static final int ACCEL = 75;  // Scaling factor used in accel / decel code.  Was 100!\r\n    static final double SCALE_ADJUST = 3.0;  // also use 4.0, 1.8?  Scaling factor used in encoderDiff calculation\r\n    // End straight variables\r\n    // ---------------------\r\n\r\n    // ---------------------\r\n    // Imu variables\r\n    BNO055IMU imu;\r\n    Orientation angles;\r\n    Acceleration gravity;\r\n    private float allowableHeadingDeviation = 3.0f;\r\n    // End imu variables\r\n    // ---------------------\r\n\r\n    private DcMotor LF = null;\r\n    private DcMotor RF = null;\r\n    private DcMotor LB = null;\r\n    private DcMotor RB = null;\r\n\r\n    private CRServo spinspinducky = null;\r\n    private Servo dumper = null;\r\n    private DcMotor armboom = null;\r\n\r\n    // ---------------------\r\n    // Bucket variables\r\n    private static final float BUCKETCLEAR = .8f;\r\n    private static final float BUCKETDUMP = 0f;\r\n    private static final float BUCKETIN = 1f;\r\n    // End bucket variables\r\n    // ---------------------\r\n\r\n    static final float STRAFE_MOD = 18f; // Changes desired distance to encoder ticks.\r\n\r\n    @Override\r\n    public void runOpMode() throws InterruptedException {\r\n        // Initializations\r\n\r\n        // IMU initialization\r\n        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();\r\n        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;\r\n        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;\r\n        parameters.calibrationDataFile = \"BNO055IMUCalibration.json\";\r\n        parameters.loggingEnabled = true;\r\n        parameters.loggingTag = \"IMU\";\r\n        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();\r\n        imu = hardwareMap.get(BNO055IMU.class, \"imu\");\r\n        imu.initialize(parameters);\r\n\r\n        // Initialize motors\r\n        LF = hardwareMap.get(DcMotor.class, \"LF\");\r\n        RF = hardwareMap.get(DcMotor.class, \"RF\");\r\n        LB = hardwareMap.get(DcMotor.class, \"LB\");\r\n        RB = hardwareMap.get(DcMotor.class, \"RB\");\r\n\r\n        spinspinducky = hardwareMap.get(CRServo.class, \"spinspinducky\");\r\n        dumper  = hardwareMap.get(Servo.class, \"dumper\");\r\n        armboom = hardwareMap.get(DcMotor.class, \"armboom\");\r\n\r\n        LF.setDirection(DcMotor.Direction.REVERSE);\r\n        RF.setDirection(DcMotor.Direction.FORWARD);\r\n        LB.setDirection(DcMotor.Direction.REVERSE);\r\n        RB.setDirection(DcMotor.Direction.FORWARD);\r\n\r\n        armboom.setDirection(DcMotorSimple.Direction.FORWARD);\r\n\r\n        resetEncoders();\r\n\r\n        waitForStart();\r\n\r\n        // -------------------------\r\n        // Path belongs here.\r\n        // This should be the only part that is modified once it is correct.\r\n\r\n        strafeBuddy(-24);\r\n        spinThatDucky(false);\r\n        sleep(1000);\r\n        goStraight(-12,MAX_SPEED,MIN_SPEED,ACCEL);\r\n        turnACW(90);\r\n        goStraight(-65,MAX_SPEED,MIN_SPEED,ACCEL);\r\n        turnCW(125);\r\n        goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);\r\n        sleep(1000);\r\n        //movethatarm(78);thing\r\n        turnACW(125);\r\n        goStraight(-90,1,MIN_SPEED,ACCEL);\r\n\r\n\r\n\r\n        // End Modifications of path\r\n        // -------------------------\r\n    }\r\n\r\n\r\n    private float getHeading() {\r\n        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC,\r\n                AxesOrder.ZYX,\r\n                DEGREES);\r\n        return angles.firstAngle;\r\n    }\r\n\r\n    public void resetEncoders() {\r\n        LF.setPower(0);\r\n        RF.setPower(0);\r\n        LB.setPower(0);\r\n        RB.setPower(0);\r\n\r\n        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n\r\n        // Just a little time to make sure encoders have reset\r\n        sleep(200);\r\n\r\n        // Only using the LB Encoder\r\n        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n\r\n        // Not technically encoder but...\r\n        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n    }\r\n\r\n    private void turnCW(float turnDegrees) {\r\n        desiredHeading -= turnDegrees;\r\n        if (desiredHeading <= -180) {\r\n            desiredHeading += 360;\r\n        }\r\n        turnToHeading();\r\n    }\r\n\r\n    private void turnACW(float turnDegrees) {\r\n        desiredHeading += turnDegrees;\r\n        if (desiredHeading > 180) {\r\n            desiredHeading -= 360;\r\n        }\r\n        turnToHeading();\r\n    }\r\n\r\n    private void turnToHeading() {\r\n        boolean isCW = deltaHeading() > 0;\r\n\r\n        if (isCW) {\r\n            telemetry.addData(\"Turning \", \"CW\");\r\n            // 1st stage - high power rough heading.\r\n            if (deltaHeading() > TURN_HIGH_ANGLE) {\r\n                setAllMotorsPower(TURN_SPEED_HIGH);\r\n                while (deltaHeading() > TURN_HIGH_ANGLE) {\r\n                }\r\n            }\r\n            // 2nd stage - low power fine heading.\r\n            if (deltaHeading() > TURN_LOW_ANGLE) {\r\n                setAllMotorsPower(TURN_SPEED_LOW);\r\n                while (deltaHeading() > TURN_LOW_ANGLE) {\r\n                }\r\n            }\r\n        } else { // Going ACW\r\n            telemetry.addData(\"Turning \", \"ACW\");\r\n            // 1st stage - high power rough heading.\r\n            if (deltaHeading() < -TURN_HIGH_ANGLE) {\r\n                setAllMotorsPower(-TURN_SPEED_HIGH);\r\n                while (deltaHeading() < -TURN_HIGH_ANGLE) {\r\n                }\r\n            }\r\n            // 2nd stage - low power fine heading.\r\n            if (deltaHeading() < -TURN_LOW_ANGLE) {\r\n                setAllMotorsPower(-TURN_SPEED_LOW);\r\n                while (deltaHeading() < -TURN_LOW_ANGLE) {\r\n                }\r\n            }\r\n        }\r\n        resetEncoders();\r\n        telemetry.addData(\"Final Heading: \", getHeading());\r\n        telemetry.addData(\"Position \", imu.getPosition());\r\n        telemetry.update();\r\n    }\r\n\r\n    private void setAllMotorsPower(float turnPower) {\r\n        LF.setPower(turnPower);\r\n        LB.setPower(turnPower);\r\n        RF.setPower(-turnPower);\r\n        RB.setPower(-turnPower);\r\n    }\r\n\r\n    private float deltaHeading() {\r\n        float dH = getHeading() - desiredHeading;\r\n        if (dH < -180) { dH += 360; }\r\n        if (dH > 180) { dH -= 360; }\r\n        return dH;\r\n    }\r\n    public void goStraight(double totalDistIn, double maxPower, double minPower, int accel) {\r\n        int distance;\r\n        int rampUpDist;\r\n        int rampDownDist;\r\n        double currentPower;\r\n        int currentDistLB = 0;\r\n        int currentDistRB = 0;\r\n        int encoderDiff;  // difference in LB and RB wheel encoder count\r\n        double powerL;  // modified Left-side motor power to equalize motors\r\n        double powerR;  // modified Right-side motor power to equalize motors\r\n        boolean forward = true;\r\n\r\n        // Use this to determine to go backward or forward\r\n        // + totalDistIn means go forward 'totalDistIn' inches\r\n        // - totalDistIn means go backward 'totalDistIn' inches\r\n\r\n        if (totalDistIn > 0) {\r\n            forward = true;\r\n        } else {\r\n            forward = false;\r\n        }\r\n\r\n\r\n        // Convert inches to encoder ticks\r\n        distance = (int) (Math.abs(totalDistIn) * COUNTS_PER_INCH);  // distance is encoder ticks, not inches\r\n        rampUpDist = (int) ((maxPower - minPower) * 100 * accel);  // calculates number of encoder ticks (distance) to get to full speed\r\n        rampDownDist = distance - rampUpDist;  // calculates when (in encoder ticks) to start slowing down\r\n\r\n        // Need our ramp-up distance to be less than half or else would not have time to decelerate\r\n        if (rampUpDist > distance / 2) {\r\n            rampUpDist = distance / 2;\r\n            rampDownDist = distance / 2;\r\n        }\r\n\r\n        // Prepare motor encoders, turns off since not running to set position\r\n        // Calculating power instead\r\n        resetEncoders();\r\n\r\n        // Setting power to motors\r\n        currentPower = minPower;\r\n        if (forward) {\r\n            LF.setPower(currentPower);\r\n            RF.setPower(currentPower);\r\n            LB.setPower(currentPower);\r\n            RB.setPower(currentPower);\r\n        } else {\r\n            LF.setPower(-currentPower);\r\n            RF.setPower(-currentPower);\r\n            LB.setPower(-currentPower);\r\n            RB.setPower(-currentPower);\r\n        }\r\n        // MKing - go forward or backward AND use encoder comparison code for error correction!\r\n        while (currentDistLB < distance) {  // While distance not met\r\n            if (currentDistLB < rampUpDist) {  // Accelerating\r\n                currentPower = minPower + ((double) currentDistLB / (double) accel) / 100.0;\r\n                maxPower = currentPower;\r\n            } else if (currentDistRB >= rampDownDist) {  // Decelerating\r\n                currentPower = maxPower - (((double) currentDistLB - (double) rampDownDist) / (double) accel) / 100.0;\r\n            }\r\n\r\n            currentDistLB = Math.abs(LB.getCurrentPosition());\r\n            currentDistRB = Math.abs(RB.getCurrentPosition());\r\n\r\n            // MKing - code for encoder comparison error correcting to run straight!\r\n            if (currentDistLB < currentDistRB) {  // Left side is lagging right side\r\n                encoderDiff = currentDistRB - currentDistLB;\r\n                powerL = currentPower;\r\n                powerR = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST)) / 100.0);\r\n            } else {  // Right side is lagging left side\r\n                encoderDiff = currentDistLB - currentDistRB;\r\n                powerR = currentPower;\r\n                powerL = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST)) / 100.0);\r\n            }\r\n\r\n            if (forward) {\r\n                LF.setPower(powerL);\r\n                RF.setPower(powerR);\r\n                LB.setPower(powerL);\r\n                RB.setPower(powerR);\r\n            } else {\r\n                LF.setPower(-powerL);\r\n                RF.setPower(-powerR);\r\n                LB.setPower(-powerL);\r\n                RB.setPower(-powerR);\r\n            }\r\n        }\r\n        resetEncoders();\r\n\r\n    }\r\n\r\n    public void strafeBuddy(float distanceMoveInches) {\r\n\r\n        distanceMoveInches*=STRAFE_MOD;\r\n\r\n        if (distanceMoveInches > 0) {\r\n            while (LB.getCurrentPosition() < (distanceMoveInches) && RB.getCurrentPosition() < (distanceMoveInches) && opModeIsActive()) {\r\n                LF.setPower(MAX_SPEED);\r\n                RF.setPower(-MAX_SPEED);\r\n                RB.setPower(MAX_SPEED);\r\n                LB.setPower(-MAX_SPEED);\r\n            }\r\n        } else {\r\n            distanceMoveInches = 0-distanceMoveInches;\r\n            while (LB.getCurrentPosition() < (distanceMoveInches) && RB.getCurrentPosition() < (distanceMoveInches) && opModeIsActive()) {\r\n                LF.setPower(-MAX_SPEED);\r\n                RF.setPower(MAX_SPEED);\r\n                RB.setPower(-MAX_SPEED);\r\n                LB.setPower(MAX_SPEED);\r\n            }\r\n        }\r\n\r\n        // Once the strafe is complete, reset the state of the motors.\r\n\r\n        LF.setPower(0);\r\n        RF.setPower(0);\r\n        RB.setPower(0);\r\n        LB.setPower(0);\r\n\r\n        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);\r\n\r\n        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);\r\n        RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);\r\n\r\n        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);\r\n\r\n        resetEncoders();\r\n    }\r\n    private void movethatarm(int getthatdistance)\r\n    {\r\n\r\n        while (armboom.getCurrentPosition() <  getthatdistance)\r\n        {\r\n            armboom.setPower(1);\r\n        }\r\n\r\n    }\r\n    private void spinThatDucky (boolean isRed)\r\n    {\r\n        resetEncoders();\r\n        LF.setPower(.05);\r\n        LB.setPower(.05);\r\n        RF.setPower(.05);\r\n        RB.setPower(.05);\r\n        if (isRed) {\r\n            spinspinducky.setPower(-1);\r\n        }\r\n        else {\r\n            spinspinducky.setPower(1);\r\n        }\r\n        sleep(1000);\r\n        resetEncoders();\r\n        sleep(4000);\r\n        spinspinducky.setPower(0);\r\n\r\n    }\r\n\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SEDaisyDuck.java b/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SEDaisyDuck.java
+--- a/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SEDaisyDuck.java	(revision 86eca18af10e07d532b686584c85b48ac573905b)
++++ b/TeamCode/src/main/java/org/firstinspires/ftc/teamcode/SEDaisyDuck.java	(date 1642363155621)
+@@ -1,146 +1,200 @@
+ package org.firstinspires.ftc.teamcode;
+ 
++import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
++
+ import com.qualcomm.hardware.bosch.BNO055IMU;
+ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+ import com.qualcomm.robotcore.hardware.CRServo;
+ import com.qualcomm.robotcore.hardware.DcMotor;
+-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+-import com.qualcomm.robotcore.hardware.Servo;
++import com.qualcomm.robotcore.util.ElapsedTime;
+ 
++import org.firstinspires.ftc.robotcore.external.Func;
+ import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+ 
+-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.*;
++import java.util.Locale;
+ 
+ @Autonomous(name="SEDaisyDuck", group="")
+ 
+ public class SEDaisyDuck extends LinearOpMode {
+-    // Declarations
+-    private float desiredHeading;
+ 
+-    // ---------------------
+-    // Turn variables - this took a lot of experimentation.  Don't recommend changing.
+-    private static final float TURN_SPEED_HIGH = 1f;
+-    private static final float TURN_SPEED_LOW = 0.15f;
+-    private static final float TURN_HIGH_ANGLE = 45.0f;
+-    private static final float TURN_LOW_ANGLE = 5.0f;
+-    // End turn variables
+-    // ---------------------
+ 
+-    // ---------------------
+-    // Variables for straight method
+-    static final double EncoderTicks = 537.6;
+-    static final double WHEEL_DIAMETER_INCHES = 4.0;
+-    static final float ENCODER_TICKS_MOD = 34F/25F;
+-    static final double COUNTS_PER_INCH = EncoderTicks / (3.1416 * WHEEL_DIAMETER_INCHES * ENCODER_TICKS_MOD);    // MKING - corrected formula on 11/27/20
+-    static final double MAX_SPEED = 0.8;
+-    static final double MIN_SPEED = 0.3;
+-    static final int ACCEL = 75;  // Scaling factor used in accel / decel code.  Was 100!
+-    static final double SCALE_ADJUST = 3.0;  // also use 4.0, 1.8?  Scaling factor used in encoderDiff calculation
+-    // End straight variables
+-    // ---------------------
++    public int distance;
++    public float desiredHeading;  // IMU measurement of current Heading
+ 
+-    // ---------------------
+-    // Imu variables
+-    BNO055IMU imu;
+-    Orientation angles;
+-    Acceleration gravity;
+-    private float allowableHeadingDeviation = 3.0f;
+-    // End imu variables
+-    // ---------------------
++    public org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit DistanceUnit;
++    private ElapsedTime runtime = new ElapsedTime();
+ 
++    //Motors and servos declaration
+     private DcMotor LF = null;
+     private DcMotor RF = null;
+     private DcMotor LB = null;
+     private DcMotor RB = null;
+-
+     private CRServo spinspinducky = null;
+-    private Servo dumper = null;
+-    private DcMotor armboom = null;
+ 
+-    // ---------------------
+-    // Bucket variables
+-    private static final float BUCKETCLEAR = .8f;
+-    private static final float BUCKETDUMP = 0f;
+-    private static final float BUCKETIN = 1f;
+-    // End bucket variables
+-    // ---------------------
++    static final double EncoderTicks = 537.7;
++    static final double WHEEL_DIAMETER_INCHES = 4.0;
++    static final float ENCODER_TICKS_MOD = 1f;
++    static final double COUNTS_PER_INCH = (EncoderTicks  * ENCODER_TICKS_MOD) / (3.1416f * WHEEL_DIAMETER_INCHES);    // MKING - corrected formula on 11/27/20
++    static final float MAX_SPEED = 1.0f;
++    static final float MIN_SPEED = 0.4f;
++    static final int ACCEL = 75;  // Scaling factor used in accel / decel code.  Was 100!
+ 
+-    static final float STRAFE_MOD = 18f; // Changes desired distance to encoder ticks.
++    BNO055IMU imu;
++    Orientation angles;
++    Acceleration gravity;
++
++    //Code to run ONCE when the driver hits INIT
+ 
+     @Override
+     public void runOpMode() throws InterruptedException {
+-        // Initializations
++        telemetry.addData("Status", "Initialized");
++        telemetry.update();
+ 
+-        // IMU initialization
+-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+-        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
+-        parameters.loggingEnabled = true;
+-        parameters.loggingTag = "IMU";
+-        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+-        imu = hardwareMap.get(BNO055IMU.class, "imu");
+-        imu.initialize(parameters);
+-
+-        // Initialize motors
++        // Initialize each of the motors and servos
+         LF = hardwareMap.get(DcMotor.class, "LF");
+         RF = hardwareMap.get(DcMotor.class, "RF");
+         LB = hardwareMap.get(DcMotor.class, "LB");
+         RB = hardwareMap.get(DcMotor.class, "RB");
+-
+         spinspinducky = hardwareMap.get(CRServo.class, "spinspinducky");
+-        dumper  = hardwareMap.get(Servo.class, "dumper");
+-        armboom = hardwareMap.get(DcMotor.class, "armboom");
+ 
+-        LF.setDirection(DcMotor.Direction.REVERSE);
++        LF.setDirection(DcMotor.Direction.REVERSE);  // motor direction set for mecanum wheels with mitre gears
+         RF.setDirection(DcMotor.Direction.FORWARD);
+         LB.setDirection(DcMotor.Direction.REVERSE);
+         RB.setDirection(DcMotor.Direction.FORWARD);
+ 
+-        armboom.setDirection(DcMotorSimple.Direction.FORWARD);
+-
++        // Should reset all encoders to zero
+         resetEncoders();
+ 
++        // IMU initialization
++        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
++        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
++        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
++        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
++        parameters.loggingEnabled = true;
++        parameters.loggingTag = "IMU";
++        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
++
++        imu = hardwareMap.get(BNO055IMU.class, "imu");
++        imu.initialize(parameters);
++
++        // Set up our telemetry dashboard
++        composeTelemetry();  // need to add this method at end of code
++
++        desiredHeading = getHeading();
++
++        telemetry.addData("Status", "Initialized");
++
++        // The following line allows moveUtils to be used in paths.
++        moveUtils.initialize(LF, RF, LB, RB, imu, desiredHeading);
++        moveUtils.resetEncoders();
++
++        // wait for the start button to be pressed.
+         waitForStart();
+ 
+         // -------------------------
+-        // Path belongs here.
+-        // This should be the only part that is modified once it is correct.
+-
+-        strafeBuddy(-24);
+-        spinThatDucky(false);
+-        sleep(1000);
+-        goStraight(-12,MAX_SPEED,MIN_SPEED,ACCEL);
+-        turnACW(90);
+-        goStraight(-65,MAX_SPEED,MIN_SPEED,ACCEL);
+-        turnCW(125);
+-        goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);
+-        sleep(1000);
+-        //movethatarm(78);thing
+-        turnACW(125);
+-        goStraight(-90,1,MIN_SPEED,ACCEL);
++        // Define the path here!!!!
+ 
++        moveUtils.strafeBuddy(-24);
++        actuatorUtils.spinThatDucky(false);
++        moveUtils.goStraight(-12,MAX_SPEED,MIN_SPEED,ACCEL);
++        moveUtils.turnACW(90);
++        moveUtils.goStraight(-65,MAX_SPEED,MIN_SPEED,ACCEL);
++        moveUtils.turnCW(125);
++        moveUtils.goStraight(-10,MAX_SPEED,MIN_SPEED,ACCEL);
++        actuatorUtils.moveThatArm(30);
++        moveUtils.turnACW(125);
++        moveUtils.goStraight(-90,1,MAX_SPEED,ACCEL);
+ 
+-
+-        // End Modifications of path
++        // End of the actual path
+         // -------------------------
+     }
+ 
+ 
+-    private float getHeading() {
++
++    //----------------------------------------------------------------------------------------------
++    // Telemetry Configuration (used by IMU code)
++    //----------------------------------------------------------------------------------------------
++
++    void composeTelemetry() {
++
++        // At the beginning of each telemetry update, grab a bunch of data
++        // from the IMU that we will then display in separate lines.
++        telemetry.addAction(new Runnable() {
++            @Override
++            public void run() {
++                // Acquiring the angles is relatively expensive; we don't want
++                // to do that in each of the three items that need that info, as that's
++                // three times the necessary expense.
++                angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
++                gravity = imu.getGravity();
++            }
++        });
++
++        telemetry.addLine()
++                .addData("status", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return imu.getSystemStatus().toShortString();
++                    }
++                })
++                .addData("calib", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return imu.getCalibrationStatus().toString();
++                    }
++                });
++
++        telemetry.addLine()
++                .addData("heading", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return formatAngle(angles.angleUnit, angles.firstAngle);
++                    }
++                })
++                .addData("roll", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return formatAngle(angles.angleUnit, angles.secondAngle);
++                    }
++                })
++                .addData("pitch", new Func<String>() {
++                    @Override
++                    public String value() {
++                        return formatAngle(angles.angleUnit, angles.thirdAngle);
++                    }
++                });
++
++    }
++
++    //----------------------------------------------------------------------------------------------
++    // Formatting (used by composeTelemetry() method)
++    //----------------------------------------------------------------------------------------------
++
++    String formatAngle(AngleUnit angleUnit, double angle) {
++        return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
++    }
++
++    String formatDegrees(double degrees) {
++        return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
++    }
++
++    //----------------------------------------------------------------------------------------------
++    // Simplified Heading retrieval code from "Learn Java for FTC" book
++    //----------------------------------------------------------------------------------------------
++    /*public double getHeading(AngleUnit angleUnit) {
+         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC,
+                 AxesOrder.ZYX,
+-                DEGREES);
++                angleUnit);
+         return angles.firstAngle;
+-    }
++    }*/
+ 
+-    public void resetEncoders() {
++    private void resetEncoders() {
+         LF.setPower(0);
+         RF.setPower(0);
+         LB.setPower(0);
+@@ -167,236 +221,12 @@
+         RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+     }
+ 
+-    private void turnCW(float turnDegrees) {
+-        desiredHeading -= turnDegrees;
+-        if (desiredHeading <= -180) {
+-            desiredHeading += 360;
+-        }
+-        turnToHeading();
+-    }
+-
+-    private void turnACW(float turnDegrees) {
+-        desiredHeading += turnDegrees;
+-        if (desiredHeading > 180) {
+-            desiredHeading -= 360;
+-        }
+-        turnToHeading();
+-    }
+-
+-    private void turnToHeading() {
+-        boolean isCW = deltaHeading() > 0;
+-
+-        if (isCW) {
+-            telemetry.addData("Turning ", "CW");
+-            // 1st stage - high power rough heading.
+-            if (deltaHeading() > TURN_HIGH_ANGLE) {
+-                setAllMotorsPower(TURN_SPEED_HIGH);
+-                while (deltaHeading() > TURN_HIGH_ANGLE) {
+-                }
+-            }
+-            // 2nd stage - low power fine heading.
+-            if (deltaHeading() > TURN_LOW_ANGLE) {
+-                setAllMotorsPower(TURN_SPEED_LOW);
+-                while (deltaHeading() > TURN_LOW_ANGLE) {
+-                }
+-            }
+-        } else { // Going ACW
+-            telemetry.addData("Turning ", "ACW");
+-            // 1st stage - high power rough heading.
+-            if (deltaHeading() < -TURN_HIGH_ANGLE) {
+-                setAllMotorsPower(-TURN_SPEED_HIGH);
+-                while (deltaHeading() < -TURN_HIGH_ANGLE) {
+-                }
+-            }
+-            // 2nd stage - low power fine heading.
+-            if (deltaHeading() < -TURN_LOW_ANGLE) {
+-                setAllMotorsPower(-TURN_SPEED_LOW);
+-                while (deltaHeading() < -TURN_LOW_ANGLE) {
+-                }
+-            }
+-        }
+-        resetEncoders();
+-        telemetry.addData("Final Heading: ", getHeading());
+-        telemetry.addData("Position ", imu.getPosition());
+-        telemetry.update();
+-    }
+-
+-    private void setAllMotorsPower(float turnPower) {
+-        LF.setPower(turnPower);
+-        LB.setPower(turnPower);
+-        RF.setPower(-turnPower);
+-        RB.setPower(-turnPower);
+-    }
+-
+-    private float deltaHeading() {
+-        float dH = getHeading() - desiredHeading;
+-        if (dH < -180) { dH += 360; }
+-        if (dH > 180) { dH -= 360; }
+-        return dH;
++    public float getHeading() {
++        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC,
++                AxesOrder.ZYX,
++                DEGREES);
++        return angles.firstAngle;
+     }
+-    public void goStraight(double totalDistIn, double maxPower, double minPower, int accel) {
+-        int distance;
+-        int rampUpDist;
+-        int rampDownDist;
+-        double currentPower;
+-        int currentDistLB = 0;
+-        int currentDistRB = 0;
+-        int encoderDiff;  // difference in LB and RB wheel encoder count
+-        double powerL;  // modified Left-side motor power to equalize motors
+-        double powerR;  // modified Right-side motor power to equalize motors
+-        boolean forward = true;
+-
+-        // Use this to determine to go backward or forward
+-        // + totalDistIn means go forward 'totalDistIn' inches
+-        // - totalDistIn means go backward 'totalDistIn' inches
+-
+-        if (totalDistIn > 0) {
+-            forward = true;
+-        } else {
+-            forward = false;
+-        }
+-
+-
+-        // Convert inches to encoder ticks
+-        distance = (int) (Math.abs(totalDistIn) * COUNTS_PER_INCH);  // distance is encoder ticks, not inches
+-        rampUpDist = (int) ((maxPower - minPower) * 100 * accel);  // calculates number of encoder ticks (distance) to get to full speed
+-        rampDownDist = distance - rampUpDist;  // calculates when (in encoder ticks) to start slowing down
+-
+-        // Need our ramp-up distance to be less than half or else would not have time to decelerate
+-        if (rampUpDist > distance / 2) {
+-            rampUpDist = distance / 2;
+-            rampDownDist = distance / 2;
+-        }
+-
+-        // Prepare motor encoders, turns off since not running to set position
+-        // Calculating power instead
+-        resetEncoders();
+-
+-        // Setting power to motors
+-        currentPower = minPower;
+-        if (forward) {
+-            LF.setPower(currentPower);
+-            RF.setPower(currentPower);
+-            LB.setPower(currentPower);
+-            RB.setPower(currentPower);
+-        } else {
+-            LF.setPower(-currentPower);
+-            RF.setPower(-currentPower);
+-            LB.setPower(-currentPower);
+-            RB.setPower(-currentPower);
+-        }
+-        // MKing - go forward or backward AND use encoder comparison code for error correction!
+-        while (currentDistLB < distance) {  // While distance not met
+-            if (currentDistLB < rampUpDist) {  // Accelerating
+-                currentPower = minPower + ((double) currentDistLB / (double) accel) / 100.0;
+-                maxPower = currentPower;
+-            } else if (currentDistRB >= rampDownDist) {  // Decelerating
+-                currentPower = maxPower - (((double) currentDistLB - (double) rampDownDist) / (double) accel) / 100.0;
+-            }
+-
+-            currentDistLB = Math.abs(LB.getCurrentPosition());
+-            currentDistRB = Math.abs(RB.getCurrentPosition());
+-
+-            // MKing - code for encoder comparison error correcting to run straight!
+-            if (currentDistLB < currentDistRB) {  // Left side is lagging right side
+-                encoderDiff = currentDistRB - currentDistLB;
+-                powerL = currentPower;
+-                powerR = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST)) / 100.0);
+-            } else {  // Right side is lagging left side
+-                encoderDiff = currentDistLB - currentDistRB;
+-                powerR = currentPower;
+-                powerL = currentPower * ((100.0 - (encoderDiff * SCALE_ADJUST)) / 100.0);
+-            }
+-
+-            if (forward) {
+-                LF.setPower(powerL);
+-                RF.setPower(powerR);
+-                LB.setPower(powerL);
+-                RB.setPower(powerR);
+-            } else {
+-                LF.setPower(-powerL);
+-                RF.setPower(-powerR);
+-                LB.setPower(-powerL);
+-                RB.setPower(-powerR);
+-            }
+-        }
+-        resetEncoders();
+-
+-    }
+-
+-    public void strafeBuddy(float distanceMoveInches) {
+-
+-        distanceMoveInches*=STRAFE_MOD;
+-
+-        if (distanceMoveInches > 0) {
+-            while (LB.getCurrentPosition() < (distanceMoveInches) && RB.getCurrentPosition() < (distanceMoveInches) && opModeIsActive()) {
+-                LF.setPower(MAX_SPEED);
+-                RF.setPower(-MAX_SPEED);
+-                RB.setPower(MAX_SPEED);
+-                LB.setPower(-MAX_SPEED);
+-            }
+-        } else {
+-            distanceMoveInches = 0-distanceMoveInches;
+-            while (LB.getCurrentPosition() < (distanceMoveInches) && RB.getCurrentPosition() < (distanceMoveInches) && opModeIsActive()) {
+-                LF.setPower(-MAX_SPEED);
+-                RF.setPower(MAX_SPEED);
+-                RB.setPower(-MAX_SPEED);
+-                LB.setPower(MAX_SPEED);
+-            }
+-        }
+-
+-        // Once the strafe is complete, reset the state of the motors.
+-
+-        LF.setPower(0);
+-        RF.setPower(0);
+-        RB.setPower(0);
+-        LB.setPower(0);
+-
+-        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+-
+-        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+-        LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+-        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+-        RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+-
+-        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+-
+-        resetEncoders();
+-    }
+-    private void movethatarm(int getthatdistance)
+-    {
+-
+-        while (armboom.getCurrentPosition() <  getthatdistance)
+-        {
+-            armboom.setPower(1);
+-        }
+-
+-    }
+-    private void spinThatDucky (boolean isRed)
+-    {
+-        resetEncoders();
+-        LF.setPower(.05);
+-        LB.setPower(.05);
+-        RF.setPower(.05);
+-        RB.setPower(.05);
+-        if (isRed) {
+-            spinspinducky.setPower(-1);
+-        }
+-        else {
+-            spinspinducky.setPower(1);
+-        }
+-        sleep(1000);
+-        resetEncoders();
+-        sleep(4000);
+-        spinspinducky.setPower(0);
+-
+-    }
++}
+ 
+ 
+-}
+\ No newline at end of file
