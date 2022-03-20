@@ -117,7 +117,7 @@ public class SWDeweyDuck extends LinearOpMode {
         goStraight(8,MAX_SPEED,MIN_SPEED,ACCEL);
         spinThatDucky(false);
         sleep(1000);
-        spinThatDucky(false);
+
         goStraight(-24,MAX_SPEED,MIN_SPEED,ACCEL);
         strafeBuddy(-2);
 
