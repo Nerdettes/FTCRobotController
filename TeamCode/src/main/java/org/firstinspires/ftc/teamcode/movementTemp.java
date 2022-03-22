@@ -17,9 +17,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.*;
 
-@Autonomous(name="SWDeweyDuck", group="")
+@Autonomous(name="Template", group="")
 
-public class SWDeweyDuck extends LinearOpMode {
+public class movementTemp extends LinearOpMode {
     // Declarations
     private float desiredHeading;
 
@@ -42,6 +42,7 @@ public class SWDeweyDuck extends LinearOpMode {
     static final double MIN_SPEED = 0.3;
     static final int ACCEL = 75;  // Scaling factor used in accel / decel code.  Was 100!
     static final double SCALE_ADJUST = 3.0;  // also use 4.0, 1.8?  Scaling factor used in encoderDiff calculation
+    double headingStraight;
     // End straight variables
     // ---------------------
 
@@ -113,13 +114,7 @@ public class SWDeweyDuck extends LinearOpMode {
         // Path belongs here.
         // This should be the only part that is modified once it is correct.
 
-        strafeBuddy(-120);
-        goStraight(8,MAX_SPEED,MIN_SPEED,ACCEL);
-        spinThatDucky(false);
-        sleep(1000);
 
-        goStraight(-24,MAX_SPEED,MIN_SPEED,ACCEL);
-        strafeBuddy(-2);
 
         // End Modifications of path
         // -------------------------
@@ -212,6 +207,7 @@ public class SWDeweyDuck extends LinearOpMode {
         telemetry.addData("Final Heading: ", getHeading());
         telemetry.addData("Position ", imu.getPosition());
         telemetry.update();
+        sleep(3000);
     }
 
     private void setAllMotorsPower(float turnPower) {
@@ -314,6 +310,7 @@ public class SWDeweyDuck extends LinearOpMode {
             }
         }
         resetEncoders();
+        headingStraight = getHeading();
 
     }
 
@@ -360,7 +357,7 @@ public class SWDeweyDuck extends LinearOpMode {
         LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        resetEncoders();
+
     }
     private void movethatarm(int getthatdistance)
     {
@@ -371,24 +368,23 @@ public class SWDeweyDuck extends LinearOpMode {
         }
 
     }
+
     private void spinThatDucky (boolean isRed)
     {
         resetEncoders();
-        LF.setPower(.05);
-        LB.setPower(.05);
-        RF.setPower(.05);
-        RB.setPower(.05);
+        LF.setPower(.1);
+        LB.setPower(.1);
+        RF.setPower(.1);
+        RB.setPower(.1);
         if (isRed) {
-            spinspinducky.setPower(-1);
+        spinspinducky.setPower(-1);
         }
         else {
             spinspinducky.setPower(1);
         }
-        sleep(1000);
-        resetEncoders();
-        sleep(4000);
+        sleep(10000);
         spinspinducky.setPower(0);
-
+        resetEncoders();
     }
 
 

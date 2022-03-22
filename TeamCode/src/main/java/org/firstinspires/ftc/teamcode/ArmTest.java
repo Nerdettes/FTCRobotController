@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -10,16 +12,14 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.*;
+@Autonomous(name="Arm Test", group="")
 
-@Autonomous(name="SWDeweyDuck", group="")
-
-public class SWDeweyDuck extends LinearOpMode {
+public class ArmTest extends LinearOpMode {
+    private static final float ARM_POWER = .15f;
     // Declarations
     private float desiredHeading;
 
@@ -60,7 +60,7 @@ public class SWDeweyDuck extends LinearOpMode {
     private DcMotor RB = null;
 
     private CRServo spinspinducky = null;
-    private Servo dumper = null;
+    private CRServo intake = null;
     private DcMotor armboom = null;
 
     // ---------------------
@@ -95,7 +95,7 @@ public class SWDeweyDuck extends LinearOpMode {
         RB = hardwareMap.get(DcMotor.class, "RB");
 
         spinspinducky = hardwareMap.get(CRServo.class, "spinspinducky");
-        dumper  = hardwareMap.get(Servo.class, "dumper");
+        intake  = hardwareMap.get(CRServo.class, "intake");
         armboom = hardwareMap.get(DcMotor.class, "armboom");
 
         LF.setDirection(DcMotor.Direction.REVERSE);
@@ -113,18 +113,52 @@ public class SWDeweyDuck extends LinearOpMode {
         // Path belongs here.
         // This should be the only part that is modified once it is correct.
 
-        strafeBuddy(-120);
-        goStraight(8,MAX_SPEED,MIN_SPEED,ACCEL);
-        spinThatDucky(false);
-        sleep(1000);
-
-        goStraight(-24,MAX_SPEED,MIN_SPEED,ACCEL);
-        strafeBuddy(-2);
+        moveThatArm(750f);
+        telemetry.addData("arm position", armboom.getCurrentPosition());
+        telemetry.update();
+        sleep(3000);
+        moveThatArm(50f);
+        telemetry.addData("arm position", armboom.getCurrentPosition());
+        telemetry.update();
+        moveThatArm(950f);
+        telemetry.addData("arm position", armboom.getCurrentPosition());
+        telemetry.update();
+        sleep(3000);
+        moveThatArm(50f);
+        telemetry.addData("arm position", armboom.getCurrentPosition());
+        telemetry.update();
+        moveThatArm(1050f);
+        telemetry.addData("arm position", armboom.getCurrentPosition());
+        telemetry.update();
+        sleep(3000);
+        moveThatArm(50f);
+        telemetry.addData("arm position", armboom.getCurrentPosition());
+        telemetry.update();
 
         // End Modifications of path
         // -------------------------
     }
 
+    public void moveThatArm (float armRotationDistance){
+        armboom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        telemetry.addData("in ArmMove", "should be moving");
+        if (armboom.getCurrentPosition() < armRotationDistance) {
+            while (armboom.getCurrentPosition() < armRotationDistance) {
+                armboom.setPower(ARM_POWER);
+                telemetry.addData("armmove", "forward power");
+                telemetry.update();
+            }
+        } else if (armboom.getCurrentPosition() > armRotationDistance) {
+            while (armboom.getCurrentPosition() > armRotationDistance) {
+                armboom.setPower(-ARM_POWER);
+                telemetry.addData("armmove", "rear power");
+                telemetry.update();
+            }
+        }
+        armboom.setPower(0);
+        armboom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        resetEncoders();
+    }
 
     private float getHeading() {
         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC,

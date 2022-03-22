@@ -6,96 +6,72 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Func;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvInternalCamera;
 
 import java.util.Locale;
 
-@Autonomous(name = "findpink", group = "")
-public class findpink extends LinearOpMode {
-    Pipeline modifyPipeline = new Pipeline();
-    // For a webcam (uncomment below)
-    //private OpenCvWebcam webCam;
-    // For a phone camera (uncomment below)
-    private  OpenCvCamera webCam;
-    private boolean isCameraStreaming = false;
-    private int resultROI;
+@Autonomous(name="NELouieDuck", group="")
 
+public class NELouieDuck extends LinearOpMode {
+
+
+    public int distance;
+    public float desiredHeading;  // IMU measurement of current Heading
+
+    public org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit DistanceUnit;
+    private ElapsedTime runtime = new ElapsedTime();
+
+    //Motors and servos declaration
     private DcMotor LF = null;
     private DcMotor RF = null;
     private DcMotor LB = null;
     private DcMotor RB = null;
     private CRServo spinspinducky = null;
-    private CRServo intake = null;
-    private DcMotor armboom = null;
-    private Servo platform = null;
+    private static DcMotor armboom = null;
+    private static CRServo intake = null;
 
     static final double EncoderTicks = 537.7;
     static final double WHEEL_DIAMETER_INCHES = 4.0;
     static final float ENCODER_TICKS_MOD = 1f;
+    static final double COUNTS_PER_INCH = (EncoderTicks  * ENCODER_TICKS_MOD) / (3.1416f * WHEEL_DIAMETER_INCHES);    // MKING - corrected formula on 11/27/20
     static final float MAX_SPEED = 1.0f;
     static final float MIN_SPEED = 0.4f;
     static final int ACCEL = 75;  // Scaling factor used in accel / decel code.  Was 100!
-    public float desiredHeading;
 
     BNO055IMU imu;
     Orientation angles;
     Acceleration gravity;
 
+    //Code to run ONCE when the driver hits INIT
+
     @Override
     public void runOpMode() throws InterruptedException {
-        int cameraMonitorViewId2 = hardwareMap.appContext.getResources().getIdentifier(
-                "cameraMonitorViewId",
-                "id",
-                hardwareMap.appContext.getPackageName());
-        // For a webcam (uncomment below)
-        webCam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId2);
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
 
-        // For a phone camera (uncomment below)
-        // webCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId2);
-        webCam.setPipeline(modifyPipeline);
-        webCam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-            @Override
-            public void onOpened() {
-                webCam.startStreaming(320, 240);
-                telemetry.addData("Pipeline: ", "Initialized");
-                telemetry.update();
-                isCameraStreaming = true;
-            }
-
-            @Override
-            public void onError(int errorCode) {
-                telemetry.addData("Error: ", "Something went wrong :(");
-                telemetry.update();
-            }
-        });
-
+        // Initialize each of the motors and servos
         LF = hardwareMap.get(DcMotor.class, "LF");
         RF = hardwareMap.get(DcMotor.class, "RF");
         LB = hardwareMap.get(DcMotor.class, "LB");
         RB = hardwareMap.get(DcMotor.class, "RB");
-        armboom = hardwareMap.get(DcMotor.class, "armboom");
-        intake = hardwareMap.get(CRServo.class, "intake");
         spinspinducky = hardwareMap.get(CRServo.class, "spinspinducky");
-        platform = hardwareMap.get(Servo.class, "platform");
 
         LF.setDirection(DcMotor.Direction.REVERSE);  // motor direction set for mecanum wheels with mitre gears
         RF.setDirection(DcMotor.Direction.FORWARD);
         LB.setDirection(DcMotor.Direction.REVERSE);
         RB.setDirection(DcMotor.Direction.FORWARD);
+
+        // Should reset all encoders to zero
+        resetEncoders();
 
         // IMU initialization
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -109,61 +85,47 @@ public class findpink extends LinearOpMode {
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
 
+        armboom = hardwareMap.get(DcMotor.class, "armboom");
+        //intake = hardwareMap.get(CRServo.class, "intake");
+
         // Set up our telemetry dashboard
         composeTelemetry();  // need to add this method at end of code
 
         desiredHeading = getHeading();
 
+        telemetry.addData("Status", "Initialized");
+
+        // The following line allows moveUtils to be used in paths.
         moveUtils.initialize(LF, RF, LB, RB, imu, desiredHeading);
-        //acuatorUtils.initialize(armboom, spinspinducky, intake);
+        actuatorUtils.initializeActuator(armboom, spinspinducky, intake);
+        actuatorUtils.initializeActuatorMovement(LF, RF, LB, RB);
         moveUtils.resetEncoders();
 
-        Long startTime = System.currentTimeMillis();
-        Long currTime = startTime;
-
-        // Troubleshooting only recommend < 5000
-        while (currTime - startTime < 50000) {
-            if (currTime - startTime < 500) {
-                telemetry.addData("Camera: ", "Waiting to make sure valid data is incoming");
-            } else {
-                telemetry.addData("Time Delta: ", (currTime - startTime));
-                resultROI = modifyPipeline.getResultROI();
-                if (resultROI == 0) {
-                    telemetry.addData("Resulting ROI: ", "Left");
-                } else if (resultROI == 1) {
-                    telemetry.addData("Resulting ROI: ", "Middle");
-                } else if (resultROI == 2) {
-                    telemetry.addData("Resulting ROI: ", "Right");
-                } else {
-                    telemetry.addData("Resulting ROI: ", "Something went wrong.");
-                }
-            }
-            telemetry.update();
-            currTime = System.currentTimeMillis();
-        }
-        platform.setPosition(90);
+        // wait for the start button to be pressed.
         waitForStart();
 
-        if (isCameraStreaming) {
-            webCam.stopStreaming();
-            webCam.closeCameraDevice();
-            isCameraStreaming = false;
-        }
+        // -------------------------
+        // Define the path here!!!!
 
-        switch (resultROI) {
-            case 0:
-                // Left (Bottom Level)
-                moveUtils.turnACW(90);
-            case 1:
-                // Middle (Middle Level)
-                moveUtils.goStraight(24, MAX_SPEED, MIN_SPEED, ACCEL);
-            default:
-                // Right (Top Level)
-                moveUtils.turnCW(90);
-        }
-        platform.setPosition(0);
 
+        moveUtils.goStraight(-4,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.turnCW(88);
+        moveUtils.goStraight(12,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.strafeBuddy(-6);
+        actuatorUtils.spinThatDucky(true);
+        moveUtils.strafeBuddy(8);
+        moveUtils.goStraight(-120,MAX_SPEED,MIN_SPEED,ACCEL);
+
+
+        // End of the actual path
+        // -------------------------
     }
+
+
+
+    //----------------------------------------------------------------------------------------------
+    // Telemetry Configuration (used by IMU code)
+    //----------------------------------------------------------------------------------------------
 
     void composeTelemetry() {
 
@@ -216,12 +178,53 @@ public class findpink extends LinearOpMode {
 
     }
 
+    //----------------------------------------------------------------------------------------------
+    // Formatting (used by composeTelemetry() method)
+    //----------------------------------------------------------------------------------------------
+
     String formatAngle(AngleUnit angleUnit, double angle) {
         return formatDegrees(AngleUnit.DEGREES.fromUnit(angleUnit, angle));
     }
 
     String formatDegrees(double degrees) {
         return String.format(Locale.getDefault(), "%.1f", AngleUnit.DEGREES.normalize(degrees));
+    }
+
+    //----------------------------------------------------------------------------------------------
+    // Simplified Heading retrieval code from "Learn Java for FTC" book
+    //----------------------------------------------------------------------------------------------
+    /*public double getHeading(AngleUnit angleUnit) {
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC,
+                AxesOrder.ZYX,
+                angleUnit);
+        return angles.firstAngle;
+    }*/
+
+    private void resetEncoders() {
+        LF.setPower(0);
+        RF.setPower(0);
+        LB.setPower(0);
+        RB.setPower(0);
+
+        LF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        RF.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        LB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        RB.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        // Just a little time to make sure encoders have reset
+        sleep(200);
+
+        // Only using the LB Encoder
+        LF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        RF.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        LB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        RB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        // Not technically encoder but...
+        LF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        RF.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        LB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        RB.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public float getHeading() {

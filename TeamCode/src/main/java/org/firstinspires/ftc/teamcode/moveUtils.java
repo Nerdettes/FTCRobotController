@@ -2,9 +2,13 @@ package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 
+import static java.lang.Thread.sleep;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
@@ -19,6 +23,9 @@ public class moveUtils {
     private static CRServo spinner = null;
     private static BNO055IMU imu;
     private static float desiredHeading;
+    private static CRServo spinspinducky = null;
+    private static Servo dumper = null;
+    private static DcMotor armboom = null;
 
     // Things specific to this class
     private static final float TURN_SPEED_HIGH = 1f;
@@ -29,8 +36,11 @@ public class moveUtils {
     static final float EncoderTicks = 537.6f;
     static final float WHEEL_DIAMETER_INCHES = 4.0f;
     static final float REVS_PER_INCH_MOD = 50f/49f;
-    static final double COUNTS_PER_INCH = (EncoderTicks * REVS_PER_INCH_MOD) / (3.1416 * WHEEL_DIAMETER_INCHES);
-    static final double SCALE_ADJUST_FWD = 3.0d;
+    static final float COUNTS_PER_INCH = (EncoderTicks * REVS_PER_INCH_MOD) / (3.1416f * WHEEL_DIAMETER_INCHES);
+    static final float SCALE_ADJUST_FWD = 3.0f;
+
+    static final float STRAFE_MOD = 18f;
+    static final float MAX_STRAFE_SPEED = 1.0f;
 
     public static void initialize(DcMotor LF, DcMotor RF, DcMotor LB, DcMotor RB, BNO055IMU imu, float currHeading) {
         moveUtils.LF = LF;
@@ -58,7 +68,7 @@ public class moveUtils {
         turnToHeading();
     }
 
-    private static void turnToHeading() {
+    public static void turnToHeading() {
         boolean isCW = deltaHeading() > 0;
 
         if (isCW) {
@@ -112,7 +122,7 @@ public class moveUtils {
         return dH;
     }
 
-    private static float getHeading() {
+    public static float getHeading() {
         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC,
                 AxesOrder.ZYX,
                 DEGREES);
@@ -226,4 +236,35 @@ public class moveUtils {
         }
         resetEncoders();
     }
+
+    public static void strafeBuddy(float distanceMoveInches) {
+
+        distanceMoveInches*=STRAFE_MOD;
+
+        if (distanceMoveInches > 0) {
+            while ((LB.getCurrentPosition() < (distanceMoveInches)) && RB.getCurrentPosition() < (distanceMoveInches)) {
+                LF.setPower(MAX_STRAFE_SPEED);
+                RF.setPower(-MAX_STRAFE_SPEED);
+                RB.setPower(MAX_STRAFE_SPEED);
+                LB.setPower(-MAX_STRAFE_SPEED);
+            }
+        } else {
+            distanceMoveInches = 0-distanceMoveInches;
+            while (LB.getCurrentPosition() < (distanceMoveInches) && RB.getCurrentPosition() < (distanceMoveInches)) {
+                LF.setPower(-MAX_STRAFE_SPEED);
+                RF.setPower(MAX_STRAFE_SPEED);
+                RB.setPower(-MAX_STRAFE_SPEED);
+                LB.setPower(MAX_STRAFE_SPEED);
+            }
+        }
+
+        // Once the strafe is complete, reset the state of the motors.
+
+        resetEncoders();
+
+        // And make sure we haven't drifted on heading.
+        turnToHeading();
+    }
+
+
 }

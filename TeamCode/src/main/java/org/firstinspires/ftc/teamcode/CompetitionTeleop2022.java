@@ -11,20 +11,21 @@ import com.qualcomm.robotcore.util.Range;
 
 
 @TeleOp(name="Competition Teleop", group="Iterative Opmode")
-public class teleop2021 extends OpMode {
+public class CompetitionTeleop2022 extends OpMode {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor LF = null;
     private DcMotor RF = null;
     private DcMotor LB = null;
     private DcMotor RB = null;
+    boolean changed = false; //Outside of loop()
     //public Servo turny = null;
     private CRServo spinspinducky = null;
-    private DcMotor intake = null;
+    private CRServo intake = null;
     private DcMotor armboom = null;
     //private  DcMotor intakemotor = null;
     private double PowerFactor = 0.65;
-    private Servo dumper = null;
+    private Servo platform = null;
     //private Servo tester = null;
     double tgtPower = 0;
     private static final float BUCKETCLEAR = .8f;
@@ -45,9 +46,9 @@ public class teleop2021 extends OpMode {
         RF = hardwareMap.get(DcMotor.class, "RF");
         LB = hardwareMap.get(DcMotor.class, "LB");
         RB = hardwareMap.get(DcMotor.class, "RB");
-        intake = hardwareMap.get(DcMotor.class, "intake");
+        intake = hardwareMap.get(CRServo.class, "intake");
         spinspinducky = hardwareMap.get(CRServo.class, "spinspinducky");
-        dumper  = hardwareMap.get(Servo.class, "dumper");
+        platform  = hardwareMap.get(Servo.class, "platform");
         armboom = hardwareMap.get(DcMotor.class, "armboom");
 
 
@@ -59,7 +60,6 @@ public class teleop2021 extends OpMode {
         LB.setDirection(DcMotor.Direction.FORWARD);
         RB.setDirection(DcMotor.Direction.REVERSE);
       armboom.setDirection(DcMotor.Direction.FORWARD);
-        intake.setDirection(DcMotor.Direction.REVERSE);
         armboom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         // Tell the driver that initialization is complete
         telemetry.addData("Status", "Initialized");
@@ -73,7 +73,7 @@ public class teleop2021 extends OpMode {
     public void init_loop() {
       //  superPusher.setPosition(.6);
        //tester.setPosition(0.2);  // ring loader arm servo
-        dumper.setPosition(1);
+        platform.setPosition(0);
     }
 
     /*
@@ -102,40 +102,33 @@ public class teleop2021 extends OpMode {
 
 //        Out
         if (gamepad1.left_bumper) {
-            intake.setDirection(DcMotor.Direction.REVERSE);
-            intake.setPower(1);
+            //intake.setDirection(DcMotorSimple.Direction.REVERSE);
+            intake.setPower(-1);
+
         } else {
             intake.setPower(0);
         }
         //In
         if (gamepad1.right_bumper) {
-            intake.setDirection(DcMotor.Direction.FORWARD);
+            //intake.setDirection(DcMotorSimple.Direction.FORWARD);
             intake.setPower(1);
         } else {
             intake.setPower(0);
         }
 
-        //Move so bucket doesnt hit chasis
-        if (gamepad2.y) {
-            // dumper.setPosition(.8);
-            dumper.setPosition(BUCKETCLEAR);
-        }
-        //Dump
-        if (gamepad2.x) {
-            //dumper.setPosition(0);
-            dumper.setPosition(BUCKETDUMP);
-        }
-        //Rest
-        if (gamepad2.a) {
-            //dumper.setPosition(1);
-            dumper.setPosition(BUCKETIN);
-        }
+
+        if(gamepad1.a && !changed) {
+            if(platform.getPosition() == 0) platform.setPosition(.8);
+            else platform.setPosition(0);
+            changed = true;
+        } else if(!gamepad1.a) changed = false;
+
         //boom up
         if (gamepad2.left_trigger >= .1)
         {
-            armboom.setPower(gamepad2.left_trigger);
+            armboom.setPower(gamepad2.left_trigger/3);
         } else if (gamepad2.right_trigger >= .1) {
-            armboom.setPower(-gamepad2.right_trigger);
+            armboom.setPower(-gamepad2.right_trigger/3);
         } else {
             armboom.setPower(0);
             armboom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

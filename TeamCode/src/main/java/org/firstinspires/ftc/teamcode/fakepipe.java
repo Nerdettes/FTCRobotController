@@ -7,7 +7,7 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
-public class Pipeline extends OpenCvPipeline {
+public class fakepipe extends OpenCvPipeline {
     Mat mat = new Mat();
     // Color Evaluation
     public int lowX = 200;
@@ -16,10 +16,10 @@ public class Pipeline extends OpenCvPipeline {
     public int highX = 255;
     public int highY = 255;
     public int highZ = 255;
-    
+
     private int LeftROIStartRow = 180;
-    private int LeftROIEndRow = 320;
-    private int MiddleROIStartRow = 20;
+    private int LeftROIEndRow = 280;
+    private int MiddleROIStartRow = 30;
     private int MiddleROIEndRow = 150;
     private int ROIStartCol = 60; // Expanded height in case camera tilts
     private int ROIEndCol = 180; // Expanded height in case camera tilts
@@ -28,6 +28,7 @@ public class Pipeline extends OpenCvPipeline {
     @Override
     public Mat processFrame(Mat input)
     {
+
         Imgproc.cvtColor(input, mat, Imgproc.COLOR_BGR2RGBA);
         Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGBA2BGR);
 
@@ -43,9 +44,6 @@ public class Pipeline extends OpenCvPipeline {
 
         setResultROI(evaluateROIs(LeftROI, MiddleROI));
 
-        LeftROI.release();      // Added by Ohm Raiders to prevent memory leak
-        MiddleROI.release();    // Added by Ohm Raiders
-
         // Adds the rectangles so we can see where we are looking (the ROIs)
         Imgproc.rectangle(mat, new Point(ROIStartCol, LeftROIStartRow), new Point(ROIEndCol, LeftROIEndRow), new Scalar(128,128,128), 2);
         Imgproc.rectangle(mat, new Point(ROIStartCol, MiddleROIStartRow), new Point(ROIEndCol, MiddleROIEndRow), new Scalar(128,128,128), 2);
@@ -54,12 +52,12 @@ public class Pipeline extends OpenCvPipeline {
 
     private int evaluateROIs(Mat LeftROI, Mat MiddleROI) {
         // Returns results:
-        // 0 - Left 
+        // 0 - Left
         // 1 - Middle
         // 2 - Right
         int LResult = findWhiteCount(LeftROI);
         int MResult = findWhiteCount(MiddleROI);
-        
+
         if (LResult - MResult > 20) {
             return 0;
         } else if (MResult - LResult > 20) {
