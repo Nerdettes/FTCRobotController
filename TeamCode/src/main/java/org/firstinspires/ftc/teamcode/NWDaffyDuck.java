@@ -22,12 +22,12 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 
 import java.util.Locale;
 
-@Autonomous(name = "practice", group = "")
-public class practice extends LinearOpMode {
+@Autonomous(name = "NWDaffyDuck", group = "")
+public class NWDaffyDuck extends LinearOpMode {
     Pipeline modifyPipeline = new Pipeline();
     // For a webcam (uncomment below)
     //private OpenCvWebcam webCam;
-    // For a phone camera (uncomment below)
+    // For a phone camera! (uncomment below)
     private  OpenCvCamera webCam;
     private boolean isCameraStreaming = false;
     private int resultROI;
