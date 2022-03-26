@@ -32,6 +32,8 @@ public class CompetitionTeleop2022 extends OpMode {
     private static final float BUCKETDUMP = 0f;
     private static final float BUCKETIN = 1f;
     boolean spinthatduck = false;
+    //magnet thingy
+    //private Servo dr_magnet = null;
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -50,6 +52,7 @@ public class CompetitionTeleop2022 extends OpMode {
         spinspinducky = hardwareMap.get(CRServo.class, "spinspinducky");
         platform  = hardwareMap.get(Servo.class, "platform");
         armboom = hardwareMap.get(DcMotor.class, "armboom");
+        //dr_magnet = hardwareMap.get(Servo.class, "dr_magnet");
 
 
         // Most robots need the motor on one side to be reversed to drive forward
@@ -74,6 +77,7 @@ public class CompetitionTeleop2022 extends OpMode {
       //  superPusher.setPosition(.6);
        //tester.setPosition(0.2);  // ring loader arm servo
         platform.setPosition(0);
+        //dr_magnet.setPosition(0);
     }
 
     /*
@@ -143,6 +147,17 @@ public class CompetitionTeleop2022 extends OpMode {
         else {
             spinspinducky.setPower(0);
         }
+
+        /*int dr_position = 0;
+        if (gamepad2.dpad_up)
+        {
+            dr_magnet.setPosition(dr_position+=.1);
+        }
+        if (gamepad2.dpad_down)
+        {
+            dr_magnet.setPosition(dr_position-=.1);
+        }
+*/
 
         double r = Math.hypot(gamepad1.left_stick_x, gamepad1.left_stick_y) * PowerFactor;
         double robotAngle = Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x) - Math.PI / 4;

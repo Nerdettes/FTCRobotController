@@ -53,7 +53,7 @@ public class NEDonaldDuck extends LinearOpMode {
 
     BNO055IMU imu;
     Orientation angles;
-     Acceleration gravity;
+    Acceleration gravity;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -123,7 +123,7 @@ public class NEDonaldDuck extends LinearOpMode {
         Long currTime = startTime;
 
         // Troubleshooting only recommend < 5000
-    /*    while (currTime - startTime < 20000) {
+   /*     while (currTime - startTime < 20000) {
             if (currTime - startTime < 500) {
                 telemetry.addData("Camera: ", "Waiting to make sure valid data is incoming");
             } else {
@@ -131,13 +131,13 @@ public class NEDonaldDuck extends LinearOpMode {
                 resultROI = modifyPipeline.getResultROI();
                 switch (resultROI) {
                     case 0:
-                        telemetry.addData("Resulting ROI: ", "Middle");
+                        telemetry.addData("Resulting ROI: ", "Left");
                         break;
                     case 1:
-                        telemetry.addData("Resulting ROI: ", "Right");
+                        telemetry.addData("Resulting ROI: ", "Middle");
                         break;
                     case 2:
-                        telemetry.addData("Resulting ROI: ", "Left");
+                        telemetry.addData("Resulting ROI: ", "Right");
                         break;
                     default:
                         telemetry.addData("Resulting ROI: ", "Something went wrong.");
@@ -153,13 +153,13 @@ public class NEDonaldDuck extends LinearOpMode {
             telemetry.addData("Time Delta: ", (currTime - startTime));
             resultROI = modifyPipeline.getResultROI();
             switch (resultROI) {
-                case 0:
+                case 1:
                     telemetry.addData("Resulting ROI: ", "Middle");
                     break;
-                case 1:
+                case 2:
                     telemetry.addData("Resulting ROI: ", "Right");
                     break;
-                case 2:
+                case 0:
                     telemetry.addData("Resulting ROI: ", "Left");
                     break;
                 default:
@@ -177,56 +177,15 @@ public class NEDonaldDuck extends LinearOpMode {
             isCameraStreaming = false;
         }
 
-        platform.setPosition(0);
-        moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
-        moveUtils.turnCW(30);
+
 
         switch (resultROI) {
-            case 1:
-                // Middle
-                moveUtils.goStraight(-7, MAX_SPEED, MIN_SPEED, ACCEL);
-                actuatorUtils.moveThatArm(ARM_MED);
-                moveUtils.goStraight(-3, MAX_SPEED, MIN_SPEED, ACCEL);
-                actuatorUtils.intakeMove(-1);
-                sleep(3000);
-                actuatorUtils.intakeMove(0);
-                actuatorUtils.moveThatArm(ARM_REST);
-                moveUtils.goStraight(7,MAX_SPEED,MIN_SPEED,ACCEL);
-                moveUtils.turnCW(60);
-                moveUtils.strafeBuddy(-40);
-                moveUtils.strafeBuddy(6);
-                moveUtils.goStraight(29, MAX_SPEED, MIN_SPEED, ACCEL);
-                actuatorUtils.spinThatDucky(true);
-                moveUtils.goStraight(-4,MAX_SPEED,MIN_SPEED,ACCEL);
-                moveUtils.strafeBuddy(55);
-                moveUtils.turnToHeading();
-                moveUtils.goStraight(15.5f,.6f,MIN_SPEED,ACCEL);
-
-                break;
-            default:
-                //Right
-                moveUtils.goStraight(-13, MAX_SPEED, MIN_SPEED, ACCEL);
-                actuatorUtils.moveThatArm(ARM_HIGH);
-                actuatorUtils.intakeMove(-2);
-                sleep(3000);
-                actuatorUtils.intakeMove(0);
-                actuatorUtils.moveThatArm(ARM_REST);
-                moveUtils.goStraight(9,MAX_SPEED,MIN_SPEED,ACCEL);
-                moveUtils.turnCW(60);
-                moveUtils.strafeBuddy(-40);
-                moveUtils.strafeBuddy(6);
-                moveUtils.goStraight(28, MAX_SPEED, MIN_SPEED, ACCEL);
-                actuatorUtils.spinThatDucky(true);
-                moveUtils.goStraight(-4,MAX_SPEED,MIN_SPEED,ACCEL);
-                moveUtils.strafeBuddy(60);
-                moveUtils.turnToHeading();
-                moveUtils.goStraight(15.5f,.6f,MIN_SPEED,ACCEL);
-
-
-                break;
             case 0:
                 // Left (Bottom Level)
-                moveUtils.goStraight(-5, MAX_SPEED, MIN_SPEED, ACCEL);
+                platform.setPosition(0);
+                moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.turnCW(37);
+                moveUtils.goStraight(-16, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_LOW);
                 moveUtils.goStraight(-1, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.intakeMove(-1);
@@ -234,8 +193,8 @@ public class NEDonaldDuck extends LinearOpMode {
                 actuatorUtils.intakeMove(0);
                 actuatorUtils.moveThatArm(ARM_REST);
                 moveUtils.goStraight(1,MAX_SPEED,MIN_SPEED,ACCEL);
-                moveUtils.turnCW(60);
-                moveUtils.strafeBuddy(-40);
+                moveUtils.turnCW(53);
+                moveUtils.strafeBuddy(-50);
                 moveUtils.strafeBuddy(6);
                 moveUtils.goStraight(31, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.spinThatDucky(true);
@@ -244,6 +203,49 @@ public class NEDonaldDuck extends LinearOpMode {
                 moveUtils.turnToHeading();
                 moveUtils.goStraight(15.5f,.6f,MIN_SPEED,ACCEL);
 
+                break;
+            case 1:
+                // Middle (Middle Level)
+                platform.setPosition(0);
+                moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.turnCW(37);
+                moveUtils.goStraight(-15, MAX_SPEED, MIN_SPEED, ACCEL);
+                actuatorUtils.moveThatArm(ARM_MED);
+                moveUtils.goStraight(-3, MAX_SPEED, MIN_SPEED, ACCEL);
+                actuatorUtils.intakeMove(-1);
+                sleep(3000);
+                actuatorUtils.intakeMove(0);
+                actuatorUtils.moveThatArm(ARM_REST);
+                moveUtils.goStraight(7,MAX_SPEED,MIN_SPEED,ACCEL);
+                moveUtils.turnCW(53);
+                moveUtils.strafeBuddy(-50);
+                moveUtils.strafeBuddy(9);
+                moveUtils.goStraight(29, MAX_SPEED, MIN_SPEED, ACCEL);
+                actuatorUtils.spinThatDucky(true);
+                moveUtils.strafeBuddy(55);
+                moveUtils.turnToHeading();
+                moveUtils.goStraight(11,.6f,MIN_SPEED,ACCEL);
+                break;
+            default:
+                // Right (Top Level Default)
+                platform.setPosition(0);
+                moveUtils.goStraight(-32, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.turnCW(90);
+                moveUtils.goStraight(-9,MAX_SPEED,MIN_SPEED,ACCEL);
+                actuatorUtils.moveThatArm(ARM_HIGH);
+                actuatorUtils.intakeMove(-2);
+                sleep(3000);
+                actuatorUtils.intakeMove(0);
+                actuatorUtils.moveThatArm(ARM_REST);
+                moveUtils.goStraight(11,MAX_SPEED,MIN_SPEED,ACCEL);
+                moveUtils.strafeBuddy(-90);
+                moveUtils.strafeBuddy(6);
+                moveUtils.goStraight(12, MAX_SPEED, MIN_SPEED, ACCEL);
+                actuatorUtils.spinThatDucky(true);
+                moveUtils.goStraight(-4,MAX_SPEED,MIN_SPEED,ACCEL);
+                moveUtils.strafeBuddy(55);
+                moveUtils.turnToHeading();
+                moveUtils.goStraight(17f,.6f,MIN_SPEED,ACCEL);
                 break;
         }
 
