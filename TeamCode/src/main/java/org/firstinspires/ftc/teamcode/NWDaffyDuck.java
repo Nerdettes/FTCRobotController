@@ -22,8 +22,8 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 
 import java.util.Locale;
 
-@Autonomous(name = "practice", group = "")
-public class practice extends LinearOpMode {
+@Autonomous(name = "NWDaffyDuck", group = "")
+public class NWDaffyDuck extends LinearOpMode {
     Pipeline modifyPipeline = new Pipeline();
     // For a webcam (uncomment below)
     //private OpenCvWebcam webCam;
@@ -177,77 +177,51 @@ public class practice extends LinearOpMode {
             isCameraStreaming = false;
         }
 
+        platform.setPosition(0);
 
+        moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
+        moveUtils.turnACW(30);
 
         switch (resultROI) {
             case 0:
                 // Left (Bottom Level)
-                platform.setPosition(0);
-                moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
-                moveUtils.turnCW(37);
-                moveUtils.goStraight(-16, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.goStraight(-9, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_LOW);
-                moveUtils.goStraight(-1, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.goStraight(-2, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.intakeMove(-1);
-                sleep(3000);
-                actuatorUtils.intakeMove(0);
-                actuatorUtils.moveThatArm(ARM_REST);
-                moveUtils.goStraight(1,MAX_SPEED,MIN_SPEED,ACCEL);
-                moveUtils.turnCW(53);
-                moveUtils.strafeBuddy(-50);
-                moveUtils.strafeBuddy(6);
-                moveUtils.goStraight(31, MAX_SPEED, MIN_SPEED, ACCEL);
-                actuatorUtils.spinThatDucky(true);
-                moveUtils.goStraight(-4,MAX_SPEED,MIN_SPEED,ACCEL);
-                moveUtils.strafeBuddy(55);
-                moveUtils.turnToHeading();
-                moveUtils.goStraight(15.5f,.6f,MIN_SPEED,ACCEL);
-
-                break;
-            case 1:
-                // Middle (Middle Level)
-                platform.setPosition(0);
-                moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
-                moveUtils.turnCW(37);
-                moveUtils.goStraight(-15, MAX_SPEED, MIN_SPEED, ACCEL);
-                actuatorUtils.moveThatArm(ARM_MED);
-                moveUtils.goStraight(-3, MAX_SPEED, MIN_SPEED, ACCEL);
-                actuatorUtils.intakeMove(-1);
-                sleep(3000);
-                actuatorUtils.intakeMove(0);
-                actuatorUtils.moveThatArm(ARM_REST);
-                moveUtils.goStraight(7,MAX_SPEED,MIN_SPEED,ACCEL);
-                moveUtils.turnCW(53);
-                moveUtils.strafeBuddy(-50);
-                moveUtils.strafeBuddy(9);
-                moveUtils.goStraight(29, MAX_SPEED, MIN_SPEED, ACCEL);
-                actuatorUtils.spinThatDucky(true);
-                moveUtils.strafeBuddy(55);
-                moveUtils.turnToHeading();
-                moveUtils.goStraight(11,.6f,MIN_SPEED,ACCEL);
-                break;
-            default:
-                // Right (Top Level Default)
-                platform.setPosition(0);
-                moveUtils.goStraight(-32, MAX_SPEED, MIN_SPEED, ACCEL);
-                moveUtils.turnCW(90);
-                moveUtils.goStraight(-9,MAX_SPEED,MIN_SPEED,ACCEL);
-                actuatorUtils.moveThatArm(ARM_HIGH);
-                actuatorUtils.intakeMove(-2);
                 sleep(3000);
                 actuatorUtils.intakeMove(0);
                 actuatorUtils.moveThatArm(ARM_REST);
                 moveUtils.goStraight(11,MAX_SPEED,MIN_SPEED,ACCEL);
-                moveUtils.strafeBuddy(-90);
-                moveUtils.strafeBuddy(6);
-                moveUtils.goStraight(12, MAX_SPEED, MIN_SPEED, ACCEL);
-                actuatorUtils.spinThatDucky(true);
-                moveUtils.goStraight(-4,MAX_SPEED,MIN_SPEED,ACCEL);
-                moveUtils.strafeBuddy(55);
-                moveUtils.turnToHeading();
-                moveUtils.goStraight(17f,.6f,MIN_SPEED,ACCEL);
+                moveUtils.turnCW(30);
+                break;
+            case 1:
+                // Middle (Middle Level)
+                moveUtils.goStraight(-12, MAX_SPEED, MIN_SPEED, ACCEL);
+                actuatorUtils.moveThatArm(ARM_MED);
+                moveUtils.goStraight(-2, MAX_SPEED, MIN_SPEED, ACCEL);
+                actuatorUtils.intakeMove(-1);
+                sleep(3000);
+                actuatorUtils.intakeMove(0);
+                actuatorUtils.moveThatArm(ARM_REST);
+                moveUtils.goStraight(14,MAX_SPEED,MIN_SPEED,ACCEL);
+                moveUtils.turnCW(30);
+                break;
+            default:
+                // Right (Top Level Default)
+                moveUtils.goStraight(-14, MAX_SPEED, MIN_SPEED, ACCEL);
+                actuatorUtils.moveThatArm(ARM_HIGH);
+                actuatorUtils.intakeMove(-1);
+                sleep(3000);
+                actuatorUtils.intakeMove(0);
+                actuatorUtils.moveThatArm(ARM_REST);
+                moveUtils.goStraight(15,MAX_SPEED,MIN_SPEED,ACCEL);
+                moveUtils.turnCW(30);
                 break;
         }
+        moveUtils.turnACW(90);
+        moveUtils.strafeBuddy(30);
+        moveUtils.goStraight(37,MAX_SPEED,MIN_SPEED,ACCEL);
 
 
     }
