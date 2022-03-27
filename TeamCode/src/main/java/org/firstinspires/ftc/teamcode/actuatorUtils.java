@@ -4,6 +4,7 @@ import static java.lang.Thread.sleep;
 
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 
 public class actuatorUtils {
     private static CRServo spinspinducky = null;
@@ -20,6 +21,7 @@ public class actuatorUtils {
         actuatorUtils.armboom = armboom;
         actuatorUtils.spinspinducky = spinspinducky;
         actuatorUtils.intake = intake;
+
     }
     public static void initializeActuatorMovement(DcMotor LF, DcMotor RF, DcMotor LB, DcMotor RB) {
         actuatorUtils.LF = LF;
@@ -91,7 +93,9 @@ public class actuatorUtils {
         armboom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
-    public static void intakeMove(int i) {
+    public static void intakeMove(int i)
+    {
         intake.setPower(i);
     }
+
 }
