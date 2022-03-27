@@ -5,9 +5,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 @TeleOp(name="Competition Teleop", group="Iterative Opmode")
@@ -19,6 +22,7 @@ public class CompetitionTeleop2022 extends OpMode {
     private DcMotor LB = null;
     private DcMotor RB = null;
     boolean changed = false; //Outside of loop()
+    boolean changed2 = false;
     //public Servo turny = null;
     private CRServo spinspinducky = null;
     private CRServo intake = null;
@@ -32,8 +36,11 @@ public class CompetitionTeleop2022 extends OpMode {
     private static final float BUCKETDUMP = 0f;
     private static final float BUCKETIN = 1f;
     boolean spinthatduck = false;
+    float dr_position = 0;
+
     //magnet thingy
-    //private Servo dr_magnet = null;
+    private Servo dr_magnet = null;
+    //private static DistanceSensor MMA = null;
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -52,7 +59,8 @@ public class CompetitionTeleop2022 extends OpMode {
         spinspinducky = hardwareMap.get(CRServo.class, "spinspinducky");
         platform  = hardwareMap.get(Servo.class, "platform");
         armboom = hardwareMap.get(DcMotor.class, "armboom");
-        //dr_magnet = hardwareMap.get(Servo.class, "dr_magnet");
+        dr_magnet = hardwareMap.get(Servo.class, "dr_magnet");
+        //MMA = hardwareMap.get(DistanceSensor.class, "MMA");
 
 
         // Most robots need the motor on one side to be reversed to drive forward
@@ -77,7 +85,7 @@ public class CompetitionTeleop2022 extends OpMode {
       //  superPusher.setPosition(.6);
        //tester.setPosition(0.2);  // ring loader arm servo
         platform.setPosition(0);
-        //dr_magnet.setPosition(0);
+        dr_magnet.setPosition(0);
     }
 
     /*
@@ -127,6 +135,12 @@ public class CompetitionTeleop2022 extends OpMode {
             changed = true;
         } else if(!gamepad1.a) changed = false;
 
+        if(gamepad1.y && !changed2) {
+            if(PowerFactor == 0.8f) PowerFactor = 0.5f;
+            else PowerFactor = (0.8f);
+            changed2 = true;
+        } else if(!gamepad1.y) changed2 = false;
+
         //boom up
         if (gamepad2.left_trigger >= .1)
         {
@@ -148,17 +162,28 @@ public class CompetitionTeleop2022 extends OpMode {
             spinspinducky.setPower(0);
         }
 
-        /*int dr_position = 0;
-        if (gamepad2.dpad_up)
+
+        if (Math.abs (gamepad2.left_stick_x) > 0.1f)
         {
-            dr_magnet.setPosition(dr_position+=.1);
+            dr_position += (gamepad2.left_stick_x/500f);
+            if (dr_position > .815f)
+            {
+                dr_position = .815f;
+            }
+            dr_magnet.setPosition(dr_position);
         }
-        if (gamepad2.dpad_down)
+
+
+
+        /*if (MMA.getDistance(DistanceUnit.CM)>3)
         {
-            dr_magnet.setPosition(dr_position-=.1);
+
+        }
+        else
+        {
+
         }
 */
-
         double r = Math.hypot(gamepad1.left_stick_x, gamepad1.left_stick_y) * PowerFactor;
         double robotAngle = Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x) - Math.PI / 4;
         double rightX = Math.pow(gamepad1.right_stick_x,5.0);
@@ -178,14 +203,7 @@ public class CompetitionTeleop2022 extends OpMode {
       //  rainbow.setPower(tgtPower1);
         //rainbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        if (gamepad2.right_trigger >= .17)
-        {
-         //   tester.setPosition(.25);  // NOTE:  Was 0.4 originally!!  Changed by MKing
-        }
 
-        else {
-           // tester.setPosition(0.17);
-        }
 
         tgtPower = -this.gamepad2.right_stick_y;
     //    superShooter.setPower(tgtPower);
@@ -196,6 +214,7 @@ public class CompetitionTeleop2022 extends OpMode {
 
 
         //telemetry.addData("MotorPower", superShooter.getPower());
+        telemetry.addData("Pos",dr_magnet.getPosition());
         telemetry.addData("Status", "Running");
         telemetry.update();
 /*
