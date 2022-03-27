@@ -24,11 +24,11 @@ public class CompetitionTeleop2022 extends OpMode {
     private CRServo intake = null;
     private DcMotor armboom = null;
     //private  DcMotor intakemotor = null;
-    private double PowerFactor = 0.65;
+    private double PowerFactor = 0.8;
     private Servo platform = null;
     //private Servo tester = null;
     double tgtPower = 0;
-    private static final float BUCKETCLEAR = .8f;
+    private static final float BUCKETCLEAR = .65f;
     private static final float BUCKETDUMP = 0f;
     private static final float BUCKETIN = 1f;
     boolean spinthatduck = false;
