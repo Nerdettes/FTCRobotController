@@ -37,10 +37,11 @@ public class CompetitionTeleop2022 extends OpMode {
     private static final float BUCKETIN = 1f;
     boolean spinthatduck = false;
     float dr_position = 0;
+    boolean isRumbling = false;
 
     //magnet thingy
     private Servo dr_magnet = null;
-    //private static DistanceSensor MMA = null;
+    private static DistanceSensor MMA = null;
     /*
      * Code to run ONCE when the driver hits INIT
      */
@@ -60,7 +61,7 @@ public class CompetitionTeleop2022 extends OpMode {
         platform  = hardwareMap.get(Servo.class, "platform");
         armboom = hardwareMap.get(DcMotor.class, "armboom");
         dr_magnet = hardwareMap.get(Servo.class, "dr_magnet");
-        //MMA = hardwareMap.get(DistanceSensor.class, "MMA");
+        MMA = hardwareMap.get(DistanceSensor.class, "MMA");
 
 
         // Most robots need the motor on one side to be reversed to drive forward
@@ -113,21 +114,20 @@ public class CompetitionTeleop2022 extends OpMode {
 
 
 //        Out
-        if (gamepad1.left_bumper) {
-            //intake.setDirection(DcMotorSimple.Direction.REVERSE);
+        if (gamepad1.left_bumper&&!gamepad1.right_bumper) {
+           //intake.setDirection(DcMotorSimple.Direction.REVERSE);
             intake.setPower(-1);
 
-        } else {
+        }
+        else if(!gamepad1.left_bumper&&!gamepad1.right_bumper)
+        {
             intake.setPower(0);
         }
         //In
-        if (gamepad1.right_bumper) {
+        else if (gamepad1.right_bumper&&!gamepad1.left_bumper) {
             //intake.setDirection(DcMotorSimple.Direction.FORWARD);
             intake.setPower(1);
-        } else {
-            intake.setPower(0);
         }
-
 
         if(gamepad1.a && !changed) {
             if(platform.getPosition() == 0) platform.setPosition(.8);
@@ -163,27 +163,36 @@ public class CompetitionTeleop2022 extends OpMode {
         }
 
 
-        if (Math.abs (gamepad2.left_stick_x) > 0.1f)
+        if (gamepad2.dpad_up)
         {
-            dr_position += (gamepad2.left_stick_x/500f);
+            dr_position += .005f;
             if (dr_position > .815f)
             {
                 dr_position = .815f;
             }
             dr_magnet.setPosition(dr_position);
         }
-
-
-
-        /*if (MMA.getDistance(DistanceUnit.CM)>3)
+        if (gamepad2.dpad_down)
         {
+            dr_position -=.005f;
+            dr_magnet.setPosition(dr_position);
+        }
 
+
+
+        if (MMA.getDistance(DistanceUnit.CM)<3 && !isRumbling)
+        {
+            gamepad1.rumble(1000);
+            isRumbling=true;
         }
         else
         {
-
+            if(MMA.getDistance(DistanceUnit.CM)>4 && isRumbling)
+            {
+                isRumbling=false;
+            }
         }
-*/
+
         double r = Math.hypot(gamepad1.left_stick_x, gamepad1.left_stick_y) * PowerFactor;
         double robotAngle = Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x) - Math.PI / 4;
         double rightX = Math.pow(gamepad1.right_stick_x,5.0);
@@ -216,6 +225,7 @@ public class CompetitionTeleop2022 extends OpMode {
         //telemetry.addData("MotorPower", superShooter.getPower());
         telemetry.addData("Pos",dr_magnet.getPosition());
         telemetry.addData("Status", "Running");
+        telemetry.addData("MMA", MMA.getDistance(DistanceUnit.CM));
         telemetry.update();
 /*
         if (gamepad2.x) {

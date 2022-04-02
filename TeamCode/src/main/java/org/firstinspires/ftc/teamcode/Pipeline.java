@@ -60,9 +60,9 @@ public class Pipeline extends OpenCvPipeline {
         int LResult = findWhiteCount(LeftROI);
         int MResult = findWhiteCount(MiddleROI);
         
-        if (LResult - MResult > 20) {
+        if (LResult - MResult > 50) {
             return 0;
-        } else if (MResult - LResult > 20) {
+        } else if (MResult - LResult > 50) {
             return 1;
         } else {
             return 2;
@@ -81,11 +81,13 @@ public class Pipeline extends OpenCvPipeline {
         return count;
     }
 
-    public int getResultROI() {
+    public int getResultROI()
+    {
         return resultROI;
     }
 
-    private void setResultROI(int roi) {
+    private void setResultROI(int roi)
+    {
         resultROI = roi;
     }
 }
