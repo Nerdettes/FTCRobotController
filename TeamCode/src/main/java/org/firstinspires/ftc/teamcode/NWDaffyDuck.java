@@ -179,29 +179,30 @@ public class NWDaffyDuck extends LinearOpMode {
 
         platform.setPosition(0);
 
-        moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
-        moveUtils.turnACW(30);
-
         switch (resultROI) {
             case 0:
                 // Left (Bottom Level)
-                moveUtils.goStraight(-9, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
+                moveUtils.turnACW(37);
+                moveUtils.goStraight(-9.5f, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_LOW);
                 moveUtils.goStraight(-2, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.intakeMove(-1);
-                sleep(3000);
+                sleep(2000);
                 actuatorUtils.intakeMove(0);
                 actuatorUtils.moveThatArm(ARM_REST);
                 moveUtils.goStraight(11,MAX_SPEED,MIN_SPEED,ACCEL);
-                moveUtils.turnCW(30);
+                moveUtils.turnCW(37);
                 break;
             case 1:
                 // Middle (Middle Level)
-                moveUtils.goStraight(-12, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
+                moveUtils.turnACW(30);
+                moveUtils.goStraight(-10, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_MED);
                 moveUtils.goStraight(-2, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.intakeMove(-1);
-                sleep(3000);
+                sleep(2000);
                 actuatorUtils.intakeMove(0);
                 actuatorUtils.moveThatArm(ARM_REST);
                 moveUtils.goStraight(14,MAX_SPEED,MIN_SPEED,ACCEL);
@@ -209,10 +210,12 @@ public class NWDaffyDuck extends LinearOpMode {
                 break;
             default:
                 // Right (Top Level Default)
+                moveUtils.goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
+                moveUtils.turnACW(30);
                 moveUtils.goStraight(-14, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_HIGH);
                 actuatorUtils.intakeMove(-1);
-                sleep(3000);
+                sleep(2000);
                 actuatorUtils.intakeMove(0);
                 actuatorUtils.moveThatArm(ARM_REST);
                 moveUtils.goStraight(15,MAX_SPEED,MIN_SPEED,ACCEL);
@@ -221,7 +224,9 @@ public class NWDaffyDuck extends LinearOpMode {
         }
         moveUtils.turnACW(90);
         moveUtils.strafeBuddy(30);
-        moveUtils.goStraight(37,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.goStraight(35,MAX_SPEED,MIN_SPEED,ACCEL);
+        //in case alliance partner wants to park
+        moveUtils.strafeBuddy(-46);
 
 
     }
