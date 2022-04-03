@@ -182,47 +182,53 @@ public class SEDonaldDuck extends LinearOpMode {
 
         platform.setPosition(0);
 
-        moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
-        moveUtils.turnACW(45);
+
 
         switch (resultROI) {
             case 0:
                 // Middle (Middle Level)
-                moveUtils.goStraight(-13f, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.turnACW(45);
+                moveUtils.goStraight(-16, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_MED);
                 moveUtils.goStraight(-1, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.intakeMove(-1);
                 sleep(2000);
                 actuatorUtils.intakeMove(0);
                 actuatorUtils.moveThatArm(ARM_REST);
+                moveUtils.goStraight(10,MAX_SPEED,MIN_SPEED,ACCEL);
                 moveUtils.turnCW(45);
-                moveUtils.goStraight(9,MAX_SPEED,MIN_SPEED,ACCEL);
-                moveUtils.strafeBuddy(-90);
-                moveUtils.goStraight(3, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.strafeBuddy(-60);
+                moveUtils.goStraight(5.5f, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.spinThatDucky(false);
                 moveUtils.turnToHeading();
                 moveUtils.goStraight(-15,.6f,MIN_SPEED,ACCEL);
-                moveUtils.strafeBuddy(-5);
+                moveUtils.strafeBuddy(-4);
                 break;
             case 1:
                 // Right (Top Level)
+                moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.turnACW(45);
                 moveUtils.goStraight(-20, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_HIGH);
                 actuatorUtils.intakeMove(-1);
                 sleep(2000);
                 actuatorUtils.intakeMove(0);
                 actuatorUtils.moveThatArm(ARM_REST);
+                moveUtils.goStraight(12,MAX_SPEED,MIN_SPEED,ACCEL);
                 moveUtils.turnCW(45);
-                moveUtils.strafeBuddy(-90);
-                moveUtils.goStraight(23, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.strafeBuddy(-60);
+                moveUtils.goStraight(5.5f, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.spinThatDucky(false);
                 moveUtils.turnToHeading();
-                moveUtils.goStraight(-17,.6f,MIN_SPEED,ACCEL);
+                moveUtils.goStraight(-15,.6f,MIN_SPEED,ACCEL);
+                moveUtils.strafeBuddy(-4);
                 break;
             default:
                 // Left (Bottom Level)
-
-                moveUtils.goStraight(-13, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.goStraight(-32, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.turnACW(90);
+                moveUtils.goStraight(-5, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_LOW);
                 moveUtils.goStraight(-1, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.intakeMove(-1);
@@ -230,12 +236,14 @@ public class SEDonaldDuck extends LinearOpMode {
                 actuatorUtils.intakeMove(0);
                 actuatorUtils.moveThatArm(ARM_REST);
 
-                moveUtils.turnCW(45);
-                moveUtils.strafeBuddy(-90);
-                moveUtils.goStraight(15.5f, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.goStraight(21, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.turnCW(90);
+                moveUtils.goStraight(27, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.strafeBuddy(-6);
                 actuatorUtils.spinThatDucky(false);
                 moveUtils.turnToHeading();
-                moveUtils.goStraight(-13,.6f,MIN_SPEED,ACCEL);
+                moveUtils.goStraight(-19, MAX_SPEED, MIN_SPEED,ACCEL);
+                moveUtils.strafeBuddy(-7);
                 break;
         }
 

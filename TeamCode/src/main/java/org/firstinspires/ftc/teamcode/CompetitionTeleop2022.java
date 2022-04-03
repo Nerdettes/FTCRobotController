@@ -129,6 +129,7 @@ public class CompetitionTeleop2022 extends OpMode {
             intake.setPower(1);
         }
 
+
         if(gamepad1.a && !changed) {
             if(platform.getPosition() == 0) platform.setPosition(.8);
             else platform.setPosition(0);
