@@ -180,17 +180,17 @@ public class SWDaffyDuck extends LinearOpMode {
 
         platform.setPosition(0);
 
-        moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
-        moveUtils.turnCW(30);
 
         switch (resultROI) {
             case 0:
                 // Middle (Middle Level)
+                moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.turnCW(30);
                 moveUtils.goStraight(-8f, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_MED);
                 moveUtils.goStraight(-2, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.intakeMove(-1);
-                sleep(3000);
+                sleep(2000);
                 actuatorUtils.intakeMove(0);
                 actuatorUtils.moveThatArm(ARM_REST);
                 moveUtils.goStraight(10f,MAX_SPEED,MIN_SPEED,ACCEL);
@@ -198,23 +198,27 @@ public class SWDaffyDuck extends LinearOpMode {
                 break;
             case 1:
                 // Right (Top Level)
+                moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.turnCW(34);
                 moveUtils.goStraight(-14, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_HIGH);
                 actuatorUtils.intakeMove(-1);
-                sleep(3000);
+                sleep(2000);
                 actuatorUtils.intakeMove(0);
                 actuatorUtils.moveThatArm(ARM_REST);
                 moveUtils.goStraight(15,MAX_SPEED,MIN_SPEED,ACCEL);
-                moveUtils.turnACW(30);
+                moveUtils.turnACW(34);
 
                 break;
             default:
                 // Left (Bottom Level)
-                moveUtils.goStraight(-7, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.turnCW(30);
+                moveUtils.goStraight(-6f, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_LOW);
                 moveUtils.goStraight(-1, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.intakeMove(-1);
-                sleep(3000);
+                sleep(2000);
                 actuatorUtils.intakeMove(0);
                 actuatorUtils.moveThatArm(ARM_REST);
                 moveUtils.goStraight(8,MAX_SPEED,MIN_SPEED,ACCEL);
