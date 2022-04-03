@@ -23,6 +23,7 @@ public class CompetitionTeleop2022 extends OpMode {
     private DcMotor RB = null;
     boolean changed = false; //Outside of loop()
     boolean changed2 = false;
+    boolean changed3 = false;
     //public Servo turny = null;
     private CRServo spinspinducky = null;
     private CRServo intake = null;
@@ -38,6 +39,7 @@ public class CompetitionTeleop2022 extends OpMode {
     boolean spinthatduck = false;
     float dr_position = 0;
     boolean isRumbling = false;
+    float dr_lock = .815f;
 
     //magnet thingy
     private Servo dr_magnet = null;
@@ -136,11 +138,55 @@ public class CompetitionTeleop2022 extends OpMode {
             changed = true;
         } else if(!gamepad1.a) changed = false;
 
-        if(gamepad1.y && !changed2) {
-            if(PowerFactor == 0.8f) PowerFactor = 0.5f;
-            else PowerFactor = (0.8f);
+        if(gamepad1.y && !changed2)
+        {
+            if(PowerFactor == 0.8f)
+            {
+                PowerFactor = 0.5f;
+            }
+            else
+            {
+                PowerFactor = (0.8f);
+            }
             changed2 = true;
-        } else if(!gamepad1.y) changed2 = false;
+        }
+        else if(!gamepad1.y)
+        {
+            changed2 = false;
+        }
+
+        if(gamepad2.y && !changed3)
+        {
+            if(dr_position == .815f)
+            {
+                dr_lock = 1f;
+            }
+            else
+            {
+                dr_lock = (0.815f);
+            }
+            changed3 = true;
+        }
+        else if(!gamepad1.y)
+        {
+            changed3 = false;
+        }
+
+
+        if (gamepad2.dpad_up)
+        {
+            dr_position += .005f;
+            if (dr_position > dr_lock)
+            {
+                dr_position = dr_lock;
+            }
+            dr_magnet.setPosition(dr_position);
+        }
+        if (gamepad2.dpad_down)
+        {
+            dr_position -=.005f;
+            dr_magnet.setPosition(dr_position);
+        }
 
         //boom up
         if (gamepad2.left_trigger >= .1)
@@ -164,26 +210,14 @@ public class CompetitionTeleop2022 extends OpMode {
         }
 
 
-        if (gamepad2.dpad_up)
-        {
-            dr_position += .005f;
-            if (dr_position > .815f)
-            {
-                dr_position = .815f;
-            }
-            dr_magnet.setPosition(dr_position);
-        }
-        if (gamepad2.dpad_down)
-        {
-            dr_position -=.005f;
-            dr_magnet.setPosition(dr_position);
-        }
+
 
 
 
         if (MMA.getDistance(DistanceUnit.CM)<3 && !isRumbling)
         {
             gamepad1.rumble(1000);
+            gamepad2.rumble(1000);
             isRumbling=true;
         }
         else
