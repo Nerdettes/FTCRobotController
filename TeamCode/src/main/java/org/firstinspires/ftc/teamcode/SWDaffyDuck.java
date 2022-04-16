@@ -185,8 +185,8 @@ public class SWDaffyDuck extends LinearOpMode {
             case 0:
                 // Middle (Middle Level)
                 moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
-                moveUtils.turnCW(30);
-                moveUtils.goStraight(-6f, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.turnCW(33);
+                moveUtils.goStraight(-7f, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_MED);
                 moveUtils.goStraight(-2, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.intakeMove(-1);
@@ -194,20 +194,20 @@ public class SWDaffyDuck extends LinearOpMode {
                 actuatorUtils.intakeMove(0);
                 actuatorUtils.moveThatArm(ARM_REST);
                 moveUtils.goStraight(10f,MAX_SPEED,MIN_SPEED,ACCEL);
-                moveUtils.turnACW(30);
+                moveUtils.turnACW(33);
                 break;
             case 1:
                 // Right (Top Level)
                 moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
-                moveUtils.turnCW(34);
-                moveUtils.goStraight(-14, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.turnCW(36);
+                moveUtils.goStraight(-13, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_HIGH);
                 actuatorUtils.intakeMove(-1);
                 sleep(2000);
                 actuatorUtils.intakeMove(0);
                 actuatorUtils.moveThatArm(ARM_REST);
                 moveUtils.goStraight(15,MAX_SPEED,MIN_SPEED,ACCEL);
-                moveUtils.turnACW(34);
+                moveUtils.turnACW(36);
 
                 break;
             default:
@@ -227,8 +227,9 @@ public class SWDaffyDuck extends LinearOpMode {
                 break;
         }
         moveUtils.turnCW(90);
-        moveUtils.strafeBuddy(-30);
+        moveUtils.strafeBuddy(-36);
         moveUtils.goStraight(37,MAX_SPEED,MIN_SPEED,ACCEL);
+        moveUtils.strafeBuddy(46);
 
     }
 

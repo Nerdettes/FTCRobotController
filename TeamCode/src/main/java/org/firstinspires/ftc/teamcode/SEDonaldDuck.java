@@ -242,7 +242,7 @@ public class SEDonaldDuck extends LinearOpMode {
                 moveUtils.strafeBuddy(-6);
                 actuatorUtils.spinThatDucky(false);
                 moveUtils.turnToHeading();
-                moveUtils.goStraight(-19, MAX_SPEED, MIN_SPEED,ACCEL);
+                moveUtils.goStraight(-18, MAX_SPEED, MIN_SPEED,ACCEL);
                 moveUtils.strafeBuddy(-7);
                 break;
         }
