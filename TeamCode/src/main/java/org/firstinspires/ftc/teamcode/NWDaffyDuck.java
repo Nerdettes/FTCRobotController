@@ -184,7 +184,7 @@ public class NWDaffyDuck extends LinearOpMode {
                 // Left (Bottom Level)
                 moveUtils.goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
                 moveUtils.turnACW(37);
-                moveUtils.goStraight(-9.5f, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.goStraight(-7.5f, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_LOW);
                 moveUtils.goStraight(-2, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.intakeMove(-1);
@@ -198,7 +198,7 @@ public class NWDaffyDuck extends LinearOpMode {
                 // Middle (Middle Level)
                 moveUtils.goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
                 moveUtils.turnACW(30);
-                moveUtils.goStraight(-10, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.goStraight(-9, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_MED);
                 moveUtils.goStraight(-2, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.intakeMove(-1);
@@ -212,7 +212,7 @@ public class NWDaffyDuck extends LinearOpMode {
                 // Right (Top Level Default)
                 moveUtils.goStraight(-6,MAX_SPEED,MIN_SPEED,ACCEL);
                 moveUtils.turnACW(30);
-                moveUtils.goStraight(-14, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.goStraight(-12, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_HIGH);
                 actuatorUtils.intakeMove(-1);
                 sleep(2000);
