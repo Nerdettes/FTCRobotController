@@ -189,7 +189,7 @@ public class SEDonaldDuck extends LinearOpMode {
                 // Middle (Middle Level)
                 moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
                 moveUtils.turnACW(45);
-                moveUtils.goStraight(-16, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.goStraight(-13, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_MED);
                 moveUtils.goStraight(-1, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.intakeMove(-1);
@@ -228,7 +228,7 @@ public class SEDonaldDuck extends LinearOpMode {
                 // Left (Bottom Level)
                 moveUtils.goStraight(-32, MAX_SPEED, MIN_SPEED, ACCEL);
                 moveUtils.turnACW(90);
-                moveUtils.goStraight(-5, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_LOW);
                 moveUtils.goStraight(-1, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.intakeMove(-1);
