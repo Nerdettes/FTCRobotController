@@ -186,7 +186,7 @@ public class SWDaffyDuck extends LinearOpMode {
                 // Middle (Middle Level)
                 moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
                 moveUtils.turnCW(30);
-                moveUtils.goStraight(-8f, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.goStraight(-6f, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_MED);
                 moveUtils.goStraight(-2, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.intakeMove(-1);
@@ -214,7 +214,7 @@ public class SWDaffyDuck extends LinearOpMode {
                 // Left (Bottom Level)
                 moveUtils.goStraight(-6, MAX_SPEED, MIN_SPEED, ACCEL);
                 moveUtils.turnCW(30);
-                moveUtils.goStraight(-6f, MAX_SPEED, MIN_SPEED, ACCEL);
+                moveUtils.goStraight(-7f, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.moveThatArm(ARM_LOW);
                 moveUtils.goStraight(-1, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.intakeMove(-1);

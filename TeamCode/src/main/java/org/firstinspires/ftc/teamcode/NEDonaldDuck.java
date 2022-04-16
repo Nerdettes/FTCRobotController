@@ -223,9 +223,10 @@ public class NEDonaldDuck extends LinearOpMode {
                 moveUtils.strafeBuddy(5);
                 moveUtils.goStraight(29, MAX_SPEED, MIN_SPEED, ACCEL);
                 actuatorUtils.spinThatDucky(true);
+                moveUtils.turnToHeading();
                 moveUtils.strafeBuddy(55);
                 moveUtils.turnToHeading();
-                moveUtils.goStraight(11,.6f,MIN_SPEED,ACCEL);
+                moveUtils.goStraight(14,.6f,MIN_SPEED,ACCEL);
                 break;
             default:
                 // Right (Top Level Default)
