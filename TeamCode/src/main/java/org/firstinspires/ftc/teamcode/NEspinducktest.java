@@ -21,7 +21,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import java.util.Locale;
 
     @Autonomous(name="NEspinducktest", group="")
-//test
+//testpls
     public class NEspinducktest extends LinearOpMode {
 
 
